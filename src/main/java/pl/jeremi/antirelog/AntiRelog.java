@@ -43,7 +43,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
         }
 
         getServer().getPluginManager().registerEvents(this, this);
-        manager = new CombatManager(config.getInt("combat-len"), getConfig().getString("busy-message").replaceAll("(&([a-f0-9]))", "\u00A7$2"), getConfig().getString("free-message").replaceAll("(&([a-f0-9]))", "\u00A7$2"), this);
+        manager = new CombatManager(config.getInt("combat-len"), config.getInt("vanish-timeout"), getConfig().getString("busy-message").replaceAll("(&([a-f0-9]))", "\u00A7$2"), getConfig().getString("free-message").replaceAll("(&([a-f0-9]))", "\u00A7$2"), this);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
     }
 
     private boolean isHostile(Entity entity) {
-        if (entity.getType() == EntityType.WITHER_SKULL
+        return entity.getType() == EntityType.WITHER_SKULL
                 || entity.getType() == EntityType.CREEPER
                 || entity.getType() == EntityType.SKELETON
                 || entity.getType() == EntityType.SPIDER
@@ -109,13 +109,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 || entity.getType() == EntityType.SHULKER
                 || entity.getType() == EntityType.WOLF
                 || entity.getType() == EntityType.IRON_GOLEM
-                || entity.getType() == EntityType.PLAYER) {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+                || entity.getType() == EntityType.PLAYER;
     }
 
     @EventHandler

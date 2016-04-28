@@ -1,3 +1,4 @@
 combat-len: 50
+vanish-timeout: 30
 busy-message: '&cAntiRelog'
 free-message: '&aAntiRelog'

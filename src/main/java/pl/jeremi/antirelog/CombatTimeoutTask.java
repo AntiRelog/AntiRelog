@@ -9,12 +9,10 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class CombatTimeoutTask extends BukkitRunnable {
     CombatManager manager;
-    JavaPlugin plugin;
     Player player;
 
-    public CombatTimeoutTask(CombatManager manager, JavaPlugin plugin, Player player) {
+    public CombatTimeoutTask(CombatManager manager, Player player) {
         this.manager = manager;
-        this.plugin = plugin;
         this.player = player;
     }
 

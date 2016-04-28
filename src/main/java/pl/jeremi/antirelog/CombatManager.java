@@ -13,18 +13,20 @@ import java.util.Hashtable;
  * Created by Jeremiasz N. on 2016-04-26.
  */
 public class CombatManager {
-    int combatDuration;
+    int combatDuration, vanishTimeout;
     Hashtable<Player, BukkitTask> playersInCombat;
-    Hashtable<Player, BossBar> bossBars;
+    Hashtable<Player, BukkitTask> barVanishList;
     JavaPlugin plugin;
     String busyMessage, freeMessage;
 
-    public CombatManager(int combatDuration, String busyMessage, String freeMessage, JavaPlugin plugin) {
+    public CombatManager(int combatDuration, int vanishTimeout, String busyMessage, String freeMessage, JavaPlugin plugin) {
         this.combatDuration = combatDuration;
+        this.vanishTimeout = vanishTimeout;
         this.plugin = plugin;
         this.busyMessage = busyMessage;
         this.freeMessage = freeMessage;
         playersInCombat = new Hashtable<Player, BukkitTask>();
+        barVanishList = new Hashtable<Player, BukkitTask>();
     }
 
     public boolean isInCombat(Player player) {
@@ -45,7 +47,7 @@ public class CombatManager {
             combatDuration,
             1L);
         playersInCombat.put(player,
-                new CombatTimeoutTask(this, plugin, player).runTaskLater(plugin, combatDuration));
+                new CombatTimeoutTask(this, player).runTaskLater(plugin, combatDuration));
     }
 
     public void setOffCombat(Player player) {
@@ -58,7 +60,18 @@ public class CombatManager {
                     BossBarAPI.Style.PROGRESS,
                     1f);
             if (playersInCombat.containsKey(player))
+            {
+                playersInCombat.get(player).cancel();
                 playersInCombat.remove(player);
+            }
+            if (barVanishList.containsKey(player)) {
+                barVanishList.get(player).cancel();
+                barVanishList.remove(player);
+            }
+            if (vanishTimeout >= 0) {
+                barVanishList.put(player,
+                        new BarVanishTimeoutTask(player).runTaskLater(plugin, vanishTimeout));
+            }
         }
     }
 }
