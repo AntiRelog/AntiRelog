@@ -5,7 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * Created by Tablet on 2016-04-27.
+ * Created by Jeremiasz N. on 2016-04-27.
  */
 public class CombatTimeoutTask extends BukkitRunnable {
     CombatManager manager;

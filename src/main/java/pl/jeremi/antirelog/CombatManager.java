@@ -10,13 +10,13 @@ import org.inventivetalent.bossbar.BossBarAPI;
 import java.util.Hashtable;
 
 /**
- * Created by Tablet on 2016-04-26.
+ * Created by Jeremiasz N. on 2016-04-26.
  */
 public class CombatManager {
     int combatDuration;
     Hashtable<Player, BukkitTask> playersInCombat;
+    Hashtable<Player, BossBar> bossBars;
     JavaPlugin plugin;
-    BossBar bar;
     String busyMessage, freeMessage;
 
     public CombatManager(int combatDuration, String busyMessage, String freeMessage, JavaPlugin plugin) {
@@ -37,7 +37,7 @@ public class CombatManager {
             playersInCombat.get(player).cancel();
         }
         BossBarAPI.removeAllBars(player);
-        bar = BossBarAPI.addBar(player,
+        BossBarAPI.addBar(player,
             new TextComponent(busyMessage),
             BossBarAPI.Color.RED,
             BossBarAPI.Style.PROGRESS,
@@ -52,7 +52,7 @@ public class CombatManager {
         if (player.isOnline())
         {
             BossBarAPI.removeAllBars(player);
-            bar = BossBarAPI.addBar(player,
+            BossBarAPI.addBar(player,
                     new TextComponent(freeMessage),
                     BossBarAPI.Color.GREEN,
                     BossBarAPI.Style.PROGRESS,
