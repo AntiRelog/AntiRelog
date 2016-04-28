@@ -1,6 +1,6 @@
 name: AntiRelog
 author: 'Jeremi <remi6397 gmail com>'
-version: 1.0.2
+version: 1.1.0
 main: pl.jeremi.antirelog.AntiRelog
 permissions:
   antirelog.bypass:
