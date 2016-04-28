@@ -1,0 +1,8 @@
+name: AntiRelog
+author: 'Jeremi <remi6397 gmail com>'
+version: 1.0.1
+main: pl.jeremi.antirelog.AntiRelog
+permissions:
+  antirelog.bypass:
+    description: Bypass Anti-Relog protection.
+    default: op
