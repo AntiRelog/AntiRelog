@@ -1,8 +1,25 @@
 name: AntiRelog
 author: 'Jeremi <remi6397 gmail com>'
-version: 1.1.0
+version: 2.0.0
 main: pl.jeremi.antirelog.AntiRelog
 permissions:
+  antirelog.*:
+    description: Get access to all functions of AntiRelog.
+    default: op
+    children:
+      antirelog.bypass: true
+      antirelog.toggle: true
   antirelog.bypass:
     description: Bypass Anti-Relog protection.
     default: op
+  antirelog.toggle:
+    description: Toggle AntiRelog bypass.
+    default: op
+commands:
+   artoggle:
+      description: AntiRelog main command
+      permission: antirelog.toggle
+      permission-message: "[AntiRelog] You don't have permission to do that!"
+      usage: |
+        AntiRelog by Jeremi
+        /artoggle [player]

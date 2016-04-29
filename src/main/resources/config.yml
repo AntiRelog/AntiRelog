@@ -2,3 +2,4 @@ combat-len: 50
 vanish-timeout: 30
 busy-message: '&cAntiRelog'
 free-message: '&aAntiRelog'
+broadcast-message: '&b[AntiRelog] &6Player &2{displayname} &6has left while in combat'

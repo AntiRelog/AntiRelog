@@ -1,9 +1,11 @@
 package pl.jeremi.antirelog;
 
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -13,46 +15,78 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 
 /**
  * Created by Jeremiasz N. on 2016-04-26.
  */
 public class AntiRelog extends JavaPlugin implements Listener {
-    YamlConfiguration config;
+    public static YamlConfiguration config;
+    public static YamlConfiguration players;
+    HashMap<Player, CombatHandle> handledPlayers;
+    HashMap<UUID, Boolean> bypassingPlayers;
     File configFile;
-    CombatManager manager;
+    File playersFile;
 
     @Override
     public void onEnable() {
         configFile = new File(getDataFolder(), "config.yml");
+        playersFile = new File(getDataFolder(), "players.yml");
         try {
-            if(!configFile.exists()){
+            if (!configFile.exists()) {
                 configFile.getParentFile().mkdirs();
                 copy(getResource("config.yml"), configFile);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        try {
+            if (!playersFile.exists()) {
+                playersFile.getParentFile().mkdirs();
+                copy(getResource("players.yml"), playersFile);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         config = new YamlConfiguration();
+        players = new YamlConfiguration();
         try {
             config.load(configFile);
+            players.load(playersFile);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        handledPlayers = new HashMap<Player, CombatHandle>();
+        bypassingPlayers = new HashMap<UUID, Boolean>();
+        for (Map.Entry<String, ?> entry : players.getConfigurationSection("bypassing").getValues(false).entrySet()) {
+            bypassingPlayers.put(UUID.fromString(entry.getKey()), (Boolean) entry.getValue());
+        }
+
         getServer().getPluginManager().registerEvents(this, this);
-        manager = new CombatManager(config.getInt("combat-len"), config.getInt("vanish-timeout"), getConfig().getString("busy-message").replaceAll("(&([a-f0-9]))", "\u00A7$2"), getConfig().getString("free-message").replaceAll("(&([a-f0-9]))", "\u00A7$2"), this);
     }
 
     @Override
     public void onDisable() {
+        HashMap<String, Boolean> bypassingPlayersConf = new HashMap<String, Boolean>();
+        for (Map.Entry<UUID, Boolean> entry : bypassingPlayers.entrySet()) {
+            bypassingPlayersConf.put(entry.getKey().toString(), entry.getValue());
+        }
+        players.set("bypassing", bypassingPlayersConf);
         try {
             config.save(configFile);
+            players.save(playersFile);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     private void copy(InputStream in, File file) {
@@ -70,18 +104,43 @@ public class AntiRelog extends JavaPlugin implements Listener {
         }
     }
 
-    @EventHandler
-    public void onCombat(EntityDamageByEntityEvent event)
-    {
-        if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getEntity();
-            if (!player.hasPermission("antirelog.bypass"))
-                manager.setOnCombat(player);
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("artoggle")) {
+            if (sender instanceof Player && args.length == 0) {
+                Player player = (Player) sender;
+                if (bypassingPlayers.containsKey(player.getUniqueId())) {
+                    bypassingPlayers.put(player.getUniqueId(), !(bypassingPlayers.get(player.getUniqueId())));
+                    getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player.getUniqueId()).toString());
+                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player.getUniqueId()).toString());
+                }
+                return true;
+            } else if (args.length == 1) {
+                Player player = getServer().getPlayer(args[1]);
+                if (player != null && bypassingPlayers.containsKey(player.getUniqueId())) {
+                    bypassingPlayers.put(player.getUniqueId(), !(bypassingPlayers.get(player.getUniqueId())));
+                    getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player.getUniqueId()).toString());
+                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player.getUniqueId()).toString());
+                } else {
+                    sender.sendMessage("[AntiRelog] " + ChatColor.RED + "Something went wrong. Is this player online?");
+                }
+                return true;
+            }
         }
+        return false;
+    }
+
+    @EventHandler
+    public void onCombat(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player && isHostile(event.getEntity())) {
             Player player = (Player) event.getDamager();
-            if (!player.hasPermission("antirelog.bypass"))
-                manager.setOnCombat(player);
+            if (!bypassingPlayers.get(player.getUniqueId()))
+                handledPlayers.get(player).startCombat();
+        }
+        if (event.getEntity() instanceof Player) {
+            Player player = (Player) event.getEntity();
+            if (!bypassingPlayers.get(player.getUniqueId()))
+                handledPlayers.get(player).startCombat();
         }
     }
 
@@ -114,16 +173,23 @@ public class AntiRelog extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        manager.setOffCombat(event.getPlayer());
+        handledPlayers.put(event.getPlayer(), new CombatHandle(event.getPlayer(), this));
+        if (!bypassingPlayers.containsKey(event.getPlayer().getUniqueId())) {
+            bypassingPlayers.put(event.getPlayer().getUniqueId(), event.getPlayer().hasPermission("antirelog.bypass"));
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onQuit(PlayerQuitEvent event)
-    {
-        Player player =  event.getPlayer();
-        if (!player.hasPermission("antirelog.bypass") && manager.isInCombat(player)) {
+    public void onQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        if (!bypassingPlayers.get(player.getUniqueId()) && handledPlayers.get(player).isInCombat()) {
             player.setHealth(0);
-            getLogger().log(Level.INFO, player.getName() + " has left server while in combat!");
+            if (!config.getString("broadcast-message").isEmpty())
+                getServer().broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("broadcast-message").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName())));
+        }
+        if (handledPlayers.containsKey(player)) {
+            handledPlayers.get(player).cleanUp();
+            handledPlayers.remove(player);
         }
     }
 }
