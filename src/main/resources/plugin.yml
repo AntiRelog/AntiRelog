@@ -1,6 +1,6 @@
 name: AntiRelog
 author: 'Jeremi <remi6397 gmail com>'
-version: 2.0.0
+version: 2.0.1
 main: pl.jeremi.antirelog.AntiRelog
 permissions:
   antirelog.*:
@@ -9,12 +9,18 @@ permissions:
     children:
       antirelog.bypass: true
       antirelog.toggle: true
+      antirelog.toggle.others: true
   antirelog.bypass:
     description: Bypass Anti-Relog protection.
     default: op
   antirelog.toggle:
     description: Toggle AntiRelog bypass.
     default: op
+  antirelog.toggle.others:
+    description: Toggle AntiRelog bypass for other players.
+    default: op
+    children:
+      antirelog.toggle: true
 commands:
    artoggle:
       description: AntiRelog main command

@@ -117,6 +117,10 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 return true;
             } else if (args.length == 1) {
                 Player player = getServer().getPlayer(args[1]);
+                if (sender instanceof Player && !player.equals(sender) && !sender.hasPermission("antirelog.toggle.others")) {
+                    sender.sendMessage("[AntiRelog] " + ChatColor.RED + "You don't have permission to toggle others bypass.");
+                    return true;
+                }
                 if (player != null && bypassingPlayers.containsKey(player.getUniqueId())) {
                     bypassingPlayers.put(player.getUniqueId(), !(bypassingPlayers.get(player.getUniqueId())));
                     getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player.getUniqueId()).toString());
