@@ -20,8 +20,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 import java.util.logging.Level;
 
 /**
@@ -29,16 +27,13 @@ import java.util.logging.Level;
  */
 public class AntiRelog extends JavaPlugin implements Listener {
     public static YamlConfiguration config;
-    public static YamlConfiguration players;
     HashMap<Player, CombatHandle> handledPlayers;
-    HashMap<UUID, Boolean> bypassingPlayers;
+    HashMap<Player, Boolean> bypassingPlayers;
     File configFile;
-    File playersFile;
 
     @Override
     public void onEnable() {
         configFile = new File(getDataFolder(), "config.yml");
-        playersFile = new File(getDataFolder(), "players.yml");
         try {
             if (!configFile.exists()) {
                 configFile.getParentFile().mkdirs();
@@ -47,42 +42,22 @@ public class AntiRelog extends JavaPlugin implements Listener {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        try {
-            if (!playersFile.exists()) {
-                playersFile.getParentFile().mkdirs();
-                copy(getResource("players.yml"), playersFile);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         config = new YamlConfiguration();
-        players = new YamlConfiguration();
         try {
             config.load(configFile);
-            players.load(playersFile);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         handledPlayers = new HashMap<Player, CombatHandle>();
-        bypassingPlayers = new HashMap<UUID, Boolean>();
-        for (Map.Entry<String, ?> entry : players.getConfigurationSection("bypassing").getValues(false).entrySet()) {
-            bypassingPlayers.put(UUID.fromString(entry.getKey()), (Boolean) entry.getValue());
-        }
-
+        bypassingPlayers = new HashMap<Player, Boolean>();
         getServer().getPluginManager().registerEvents(this, this);
     }
 
     @Override
     public void onDisable() {
-        HashMap<String, Boolean> bypassingPlayersConf = new HashMap<String, Boolean>();
-        for (Map.Entry<UUID, Boolean> entry : bypassingPlayers.entrySet()) {
-            bypassingPlayersConf.put(entry.getKey().toString(), entry.getValue());
-        }
-        players.set("bypassing", bypassingPlayersConf);
         try {
             config.save(configFile);
-            players.save(playersFile);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -109,10 +84,10 @@ public class AntiRelog extends JavaPlugin implements Listener {
         if (command.getName().equalsIgnoreCase("artoggle")) {
             if (sender instanceof Player && args.length == 0) {
                 Player player = (Player) sender;
-                if (bypassingPlayers.containsKey(player.getUniqueId())) {
-                    bypassingPlayers.put(player.getUniqueId(), !(bypassingPlayers.get(player.getUniqueId())));
-                    getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player.getUniqueId()).toString());
-                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player.getUniqueId()).toString());
+                if (bypassingPlayers.containsKey(player)) {
+                    bypassingPlayers.put(player, !(bypassingPlayers.get(player)));
+                    getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player).toString());
+                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
                 }
                 return true;
             } else if (args.length == 1) {
@@ -121,10 +96,10 @@ public class AntiRelog extends JavaPlugin implements Listener {
                     sender.sendMessage("[AntiRelog] " + ChatColor.RED + "You don't have permission to toggle others bypass.");
                     return true;
                 }
-                if (player != null && bypassingPlayers.containsKey(player.getUniqueId())) {
-                    bypassingPlayers.put(player.getUniqueId(), !(bypassingPlayers.get(player.getUniqueId())));
-                    getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player.getUniqueId()).toString());
-                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player.getUniqueId()).toString());
+                if (player != null && bypassingPlayers.containsKey(player)) {
+                    bypassingPlayers.put(player, !(bypassingPlayers.get(player)));
+                    getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player).toString());
+                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
                 } else {
                     sender.sendMessage("[AntiRelog] " + ChatColor.RED + "Something went wrong. Is this player online?");
                 }
@@ -138,12 +113,12 @@ public class AntiRelog extends JavaPlugin implements Listener {
     public void onCombat(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player && isHostile(event.getEntity())) {
             Player player = (Player) event.getDamager();
-            if (!bypassingPlayers.get(player.getUniqueId()))
+            if (!bypassingPlayers.get(player))
                 handledPlayers.get(player).startCombat();
         }
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
-            if (!bypassingPlayers.get(player.getUniqueId()))
+            if (!bypassingPlayers.get(player))
                 handledPlayers.get(player).startCombat();
         }
     }
@@ -178,15 +153,13 @@ public class AntiRelog extends JavaPlugin implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         handledPlayers.put(event.getPlayer(), new CombatHandle(event.getPlayer(), this));
-        if (!bypassingPlayers.containsKey(event.getPlayer().getUniqueId())) {
-            bypassingPlayers.put(event.getPlayer().getUniqueId(), event.getPlayer().hasPermission("antirelog.bypass"));
-        }
+        bypassingPlayers.put(event.getPlayer(), event.getPlayer().hasPermission("antirelog.bypass"));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        if (!bypassingPlayers.get(player.getUniqueId()) && handledPlayers.get(player).isInCombat()) {
+        if (!bypassingPlayers.get(player) && handledPlayers.get(player).isInCombat()) {
             player.setHealth(0);
             if (!config.getString("broadcast-message").isEmpty())
                 getServer().broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("broadcast-message").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName())));
@@ -194,6 +167,9 @@ public class AntiRelog extends JavaPlugin implements Listener {
         if (handledPlayers.containsKey(player)) {
             handledPlayers.get(player).cleanUp();
             handledPlayers.remove(player);
+        }
+        if (bypassingPlayers.containsKey(player)) {
+            bypassingPlayers.remove(player);
         }
     }
 }
