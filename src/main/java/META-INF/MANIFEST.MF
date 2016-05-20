@@ -1,6 +1,2 @@
 Manifest-Version: 1.0
-Class-Path: ebean-2.8.1.jar junit-4.10.jar bukkit-1.9-R0.1-20160330.16
- 0319-146.jar hamcrest-core-1.1.jar commons-lang-2.6.jar persistence-a
- pi-1.0.jar bossbarapi-2.3.6.jar gson-2.2.4.jar guava-17.0.jar snakeya
- ml-1.15.jar json-simple-1.1.1.jar
 

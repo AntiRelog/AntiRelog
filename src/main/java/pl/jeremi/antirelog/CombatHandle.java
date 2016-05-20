@@ -48,7 +48,7 @@ public class CombatHandle {
                 combatDuration,
                 1L);
         combatFinishTask =
-                new CombatFinishTask(this).runTaskLater(plugin, combatDuration);
+                new CombatFinishTask(this).runTaskLater(plugin, combatDuration * 20);
     }
 
     public void endCombat() {
@@ -66,7 +66,7 @@ public class CombatHandle {
                     1f);
             if (vanishTimeout >= 0) {
                 barVanishTask =
-                        new BarVanishTimeoutTask(player).runTaskLater(plugin, vanishTimeout);
+                        new BarVanishTimeoutTask(player).runTaskLater(plugin, vanishTimeout * 20);
             }
         }
     }

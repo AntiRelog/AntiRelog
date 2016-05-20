@@ -1,9 +1,10 @@
 package pl.jeremi.antirelog;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -15,10 +16,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.logging.Level;
 
@@ -26,57 +23,25 @@ import java.util.logging.Level;
  * Created by Jeremiasz N. on 2016-04-26.
  */
 public class AntiRelog extends JavaPlugin implements Listener {
-    public static YamlConfiguration config;
+    public static FileConfiguration config;
     HashMap<Player, CombatHandle> handledPlayers;
     HashMap<Player, Boolean> bypassingPlayers;
-    File configFile;
 
     @Override
     public void onEnable() {
-        configFile = new File(getDataFolder(), "config.yml");
-        try {
-            if (!configFile.exists()) {
-                configFile.getParentFile().mkdirs();
-                copy(getResource("config.yml"), configFile);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        config = new YamlConfiguration();
-        try {
-            config.load(configFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        config = getConfig();
+
+        config.addDefault("combat-len", 5);
+        config.addDefault("vanish-timeout", 3);
+        config.addDefault("busy-message", "&cAntiRelog");
+        config.addDefault("free-message", "&aAntiRelog");
+        config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat");
+        config.options().copyDefaults(true);
+        saveConfig();
 
         handledPlayers = new HashMap<Player, CombatHandle>();
         bypassingPlayers = new HashMap<Player, Boolean>();
         getServer().getPluginManager().registerEvents(this, this);
-    }
-
-    @Override
-    public void onDisable() {
-        try {
-            config.save(configFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void copy(InputStream in, File file) {
-        try {
-            OutputStream out = new FileOutputStream(file);
-            byte[] buf = new byte[1024];
-            int len;
-            while((len=in.read(buf))>0){
-                out.write(buf,0,len);
-            }
-            out.close();
-            in.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -124,6 +89,10 @@ public class AntiRelog extends JavaPlugin implements Listener {
     }
 
     private boolean isHostile(Entity entity) {
+        if ((Bukkit.getBukkitVersion().contains("1.8") || Bukkit.getBukkitVersion().contains("1.9")) && (entity.getType() == EntityType.GUARDIAN || entity.getType() == EntityType.ENDERMITE))
+            return true;
+        if (Bukkit.getBukkitVersion().contains("1.9") && entity.getType() == EntityType.SHULKER) return true;
+
         return entity.getType() == EntityType.WITHER_SKULL
                 || entity.getType() == EntityType.CREEPER
                 || entity.getType() == EntityType.SKELETON
@@ -142,9 +111,6 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 || entity.getType() == EntityType.WITHER
                 || entity.getType() == EntityType.BAT
                 || entity.getType() == EntityType.WITCH
-                || entity.getType() == EntityType.ENDERMITE
-                || entity.getType() == EntityType.GUARDIAN
-                || entity.getType() == EntityType.SHULKER
                 || entity.getType() == EntityType.WOLF
                 || entity.getType() == EntityType.IRON_GOLEM
                 || entity.getType() == EntityType.PLAYER;
