@@ -23,9 +23,9 @@ import java.util.logging.Level;
  * Created by Jeremiasz N. on 2016-04-26.
  */
 public class AntiRelog extends JavaPlugin implements Listener {
-    public static FileConfiguration config;
-    HashMap<Player, CombatHandle> handledPlayers;
-    HashMap<Player, Boolean> bypassingPlayers;
+    static FileConfiguration config;
+    private HashMap<Player, CombatHandle> handledPlayers;
+    private HashMap<Player, Boolean> bypassingPlayers;
 
     @Override
     public void onEnable() {
@@ -35,6 +35,8 @@ public class AntiRelog extends JavaPlugin implements Listener {
         config.addDefault("vanish-timeout", 3);
         config.addDefault("busy-message", "&cAntiRelog");
         config.addDefault("free-message", "&aAntiRelog");
+        config.addDefault("busy-color", "red");
+        config.addDefault("free-color", "green");
         config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat");
         config.options().copyDefaults(true);
         saveConfig();

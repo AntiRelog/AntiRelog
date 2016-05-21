@@ -2,6 +2,7 @@ package pl.jeremi.antirelog;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -10,30 +11,32 @@ import org.inventivetalent.bossbar.BossBarAPI;
 /**
  * Created by Jeremiasz N. on 2016-04-26.
  */
-public class CombatHandle {
-    int combatDuration, vanishTimeout;
-    JavaPlugin plugin;
-    String busyMessage, freeMessage;
-    Player player;
-    boolean inCombat, barVanished;
-    BukkitTask barVanishTask, combatFinishTask;
+class CombatHandle {
+    private int combatDuration, vanishTimeout;
+    private JavaPlugin plugin;
+    private String busyMessage, freeMessage;
+    private BossBarAPI.Color busyColor, freeColor;
+    private Player player;
+    private boolean inCombat;
+    private BukkitTask barVanishTask, combatFinishTask;
 
-    public CombatHandle(Player player, JavaPlugin plugin) {
+    CombatHandle(Player player, JavaPlugin plugin) {
         this.player = player;
         this.plugin = plugin;
         combatDuration = AntiRelog.config.getInt("combat-len");
         vanishTimeout = AntiRelog.config.getInt("vanish-timeout");
         busyMessage = ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString("busy-message"));
         freeMessage = ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString("free-message"));
+        freeColor = BossBarAPI.Color.valueOf(AntiRelog.config.getString("free-color").toUpperCase());
+        busyColor = BossBarAPI.Color.valueOf(AntiRelog.config.getString("busy-color").toUpperCase());
         inCombat = false;
-        barVanished = true;
     }
 
-    public boolean isInCombat() {
+    boolean isInCombat() {
         return inCombat;
     }
 
-    public void startCombat() {
+    void startCombat() {
         inCombat = true;
         if (barVanishTask != null)
             barVanishTask.cancel();
@@ -42,16 +45,16 @@ public class CombatHandle {
         BossBarAPI.removeAllBars(player);
         BossBarAPI.addBar(player,
                 new TextComponent(busyMessage),
-                BossBarAPI.Color.RED,
-                BossBarAPI.Style.PROGRESS,
+                busyColor,
+                BossBarAPI.Style.NOTCHED_20,
                 1f,
-                combatDuration,
+                Bukkit.getBukkitVersion().contains("1.9") ? combatDuration * 20 : combatDuration, // HACK: I don't know what is happening with BossBarAPI, but this fixes the problem.
                 1L);
         combatFinishTask =
                 new CombatFinishTask(this).runTaskLater(plugin, combatDuration * 20);
     }
 
-    public void endCombat() {
+    void endCombat() {
         inCombat = false;
         if (barVanishTask != null)
             barVanishTask.cancel();
@@ -61,8 +64,8 @@ public class CombatHandle {
             BossBarAPI.removeAllBars(player);
             BossBarAPI.addBar(player,
                     new TextComponent(freeMessage),
-                    BossBarAPI.Color.GREEN,
-                    BossBarAPI.Style.PROGRESS,
+                    freeColor,
+                    BossBarAPI.Style.NOTCHED_20,
                     1f);
             if (vanishTimeout >= 0) {
                 barVanishTask =
@@ -71,7 +74,7 @@ public class CombatHandle {
         }
     }
 
-    public void cleanUp() {
+    void cleanUp() {
         if (barVanishTask != null)
             barVanishTask.cancel();
         if (combatFinishTask != null)
