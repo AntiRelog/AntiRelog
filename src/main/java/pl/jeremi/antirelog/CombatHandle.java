@@ -12,9 +12,10 @@ import org.inventivetalent.bossbar.BossBarAPI;
  * Created by Jeremiasz N. on 2016-04-26.
  */
 class CombatHandle {
+    static boolean enableBarApi;
     private int combatDuration, vanishTimeout;
     private JavaPlugin plugin;
-    private String busyMessage, freeMessage;
+    private String busyMessage, freeMessage, busyChat, freeChat;
     private BossBarAPI.Color busyColor, freeColor;
     private Player player;
     private boolean inCombat;
@@ -25,10 +26,14 @@ class CombatHandle {
         this.plugin = plugin;
         combatDuration = AntiRelog.config.getInt("combat-len");
         vanishTimeout = AntiRelog.config.getInt("vanish-timeout");
-        busyMessage = ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString("busy-message"));
-        freeMessage = ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString("free-message"));
-        freeColor = BossBarAPI.Color.valueOf(AntiRelog.config.getString("free-color").toUpperCase());
-        busyColor = BossBarAPI.Color.valueOf(AntiRelog.config.getString("busy-color").toUpperCase());
+        busyMessage = ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString("busy-message").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName()).replaceAll("\\{combatdur\\}", String.valueOf(combatDuration)));
+        freeMessage = ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString("free-message").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName()).replaceAll("\\{combatdur\\}", String.valueOf(combatDuration)));
+        busyChat = ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString("busy-chat").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName()).replaceAll("\\{combatdur\\}", String.valueOf(combatDuration)));
+        freeChat = ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString("free-chat").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName()).replaceAll("\\{combatdur\\}", String.valueOf(combatDuration)));
+        if (enableBarApi) {
+            freeColor = BossBarAPI.Color.valueOf(AntiRelog.config.getString("free-color").toUpperCase());
+            busyColor = BossBarAPI.Color.valueOf(AntiRelog.config.getString("busy-color").toUpperCase());
+        }
         inCombat = false;
     }
 
@@ -37,41 +42,50 @@ class CombatHandle {
     }
 
     void startCombat() {
+        if (enableBarApi) {
+            if (barVanishTask != null)
+                barVanishTask.cancel();
+            BossBarAPI.removeAllBars(player);
+            BossBarAPI.addBar(player,
+                    new TextComponent(busyMessage),
+                    busyColor,
+                    BossBarAPI.Style.NOTCHED_20,
+                    1f,
+                    Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") ?
+                            combatDuration * 20 : combatDuration, // NOTE: Inconsistent time units in BossBarAPI
+                    1L);
+        }
+        if (!busyChat.isEmpty())
+            player.sendMessage(busyChat);
         inCombat = true;
-        if (barVanishTask != null)
-            barVanishTask.cancel();
         if (combatFinishTask != null)
             combatFinishTask.cancel();
-        BossBarAPI.removeAllBars(player);
-        BossBarAPI.addBar(player,
-                new TextComponent(busyMessage),
-                busyColor,
-                BossBarAPI.Style.NOTCHED_20,
-                1f,
-                Bukkit.getBukkitVersion().contains("1.9") ? combatDuration * 20 : combatDuration, // HACK: I don't know what is happening with BossBarAPI, but this fixes the problem.
-                1L);
         combatFinishTask =
                 new CombatFinishTask(this).runTaskLater(plugin, combatDuration * 20);
     }
 
     void endCombat() {
-        inCombat = false;
-        if (barVanishTask != null)
-            barVanishTask.cancel();
-        if (combatFinishTask != null)
-            combatFinishTask.cancel();
-        if (player.isOnline()) {
-            BossBarAPI.removeAllBars(player);
-            BossBarAPI.addBar(player,
-                    new TextComponent(freeMessage),
-                    freeColor,
-                    BossBarAPI.Style.NOTCHED_20,
-                    1f);
-            if (vanishTimeout >= 0) {
-                barVanishTask =
-                        new BarVanishTimeoutTask(player).runTaskLater(plugin, vanishTimeout * 20);
+        if (enableBarApi) {
+            if (barVanishTask != null)
+                barVanishTask.cancel();
+            if (player.isOnline()) {
+                BossBarAPI.removeAllBars(player);
+                BossBarAPI.addBar(player,
+                        new TextComponent(freeMessage),
+                        freeColor,
+                        BossBarAPI.Style.NOTCHED_20,
+                        1f);
+                if (vanishTimeout >= 0) {
+                    barVanishTask =
+                            new BarVanishTimeoutTask(player).runTaskLater(plugin, vanishTimeout * 20);
+                }
             }
         }
+        if (!freeChat.isEmpty())
+            player.sendMessage(freeChat);
+        inCombat = false;
+        if (combatFinishTask != null)
+            combatFinishTask.cancel();
     }
 
     void cleanUp() {

@@ -1,6 +1,6 @@
 name: AntiRelog
 author: 'Jeremi <remi6397 gmail com>'
-version: 2.3
+version: 2.4
 main: pl.jeremi.antirelog.AntiRelog
 permissions:
   antirelog.*:

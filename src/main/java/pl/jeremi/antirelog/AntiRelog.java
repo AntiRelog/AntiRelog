@@ -31,19 +31,24 @@ public class AntiRelog extends JavaPlugin implements Listener {
     public void onEnable() {
         config = getConfig();
 
+        config.addDefault("enable-barapi", true);
         config.addDefault("combat-len", 5);
         config.addDefault("vanish-timeout", 3);
         config.addDefault("busy-message", "&cAntiRelog");
         config.addDefault("free-message", "&aAntiRelog");
         config.addDefault("busy-color", "red");
         config.addDefault("free-color", "green");
-        config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat");
+        config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
+        config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {combatdur} seconds.");
+        config.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");
         config.options().copyDefaults(true);
         saveConfig();
 
         handledPlayers = new HashMap<Player, CombatHandle>();
         bypassingPlayers = new HashMap<Player, Boolean>();
         getServer().getPluginManager().registerEvents(this, this);
+
+        CombatHandle.enableBarApi = AntiRelog.config.getBoolean("enable-barapi");
     }
 
     @Override
@@ -58,7 +63,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 }
                 return true;
             } else if (args.length == 1) {
-                Player player = getServer().getPlayer(args[1]);
+                Player player = getServer().getPlayer(args[0]);
                 if (sender instanceof Player && !player.equals(sender) && !sender.hasPermission("antirelog.toggle.others")) {
                     sender.sendMessage("[AntiRelog] " + ChatColor.RED + "You don't have permission to toggle others bypass.");
                     return true;
@@ -91,9 +96,13 @@ public class AntiRelog extends JavaPlugin implements Listener {
     }
 
     private boolean isHostile(Entity entity) {
-        if ((Bukkit.getBukkitVersion().contains("1.8") || Bukkit.getBukkitVersion().contains("1.9")) && (entity.getType() == EntityType.GUARDIAN || entity.getType() == EntityType.ENDERMITE))
+        if ((Bukkit.getBukkitVersion().contains("1.8") || Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10")) && (entity.getType() == EntityType.GUARDIAN || entity.getType() == EntityType.ENDERMITE))
             return true;
-        if (Bukkit.getBukkitVersion().contains("1.9") && entity.getType() == EntityType.SHULKER) return true;
+
+        if (Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") && entity.getType() == EntityType.SHULKER)
+            return true;
+
+        if (Bukkit.getBukkitVersion().contains("1.10") && entity.getType() == EntityType.POLAR_BEAR) return true;
 
         return entity.getType() == EntityType.WITHER_SKULL
                 || entity.getType() == EntityType.CREEPER
@@ -130,7 +139,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
         if (!bypassingPlayers.get(player) && handledPlayers.get(player).isInCombat()) {
             player.setHealth(0);
             if (!config.getString("broadcast-message").isEmpty())
-                getServer().broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("broadcast-message").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName())));
+                getServer().broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("broadcast-message").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName()).replaceAll("\\{combatdur\\}", String.valueOf(config.getInt("combat-len")))));
         }
         if (handledPlayers.containsKey(player)) {
             handledPlayers.get(player).cleanUp();
