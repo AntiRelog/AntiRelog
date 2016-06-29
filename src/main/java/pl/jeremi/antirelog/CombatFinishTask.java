@@ -6,7 +6,7 @@ import org.bukkit.scheduler.BukkitRunnable;
  * Created by Jeremiasz N. on 2016-04-27.
  */
 class CombatFinishTask extends BukkitRunnable {
-    CombatHandle handle;
+    private CombatHandle handle;
 
     CombatFinishTask(CombatHandle handle) {
         this.handle = handle;

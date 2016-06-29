@@ -55,7 +55,7 @@ class CombatHandle {
                             combatDuration * 20 : combatDuration, // NOTE: Inconsistent time units in BossBarAPI
                     1L);
         }
-        if (!busyChat.isEmpty())
+        if (!busyChat.isEmpty() && !inCombat)
             player.sendMessage(busyChat);
         inCombat = true;
         if (combatFinishTask != null)
