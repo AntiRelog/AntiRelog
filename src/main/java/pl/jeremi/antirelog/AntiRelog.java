@@ -59,21 +59,21 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 if (bypassingPlayers.containsKey(player)) {
                     bypassingPlayers.put(player, !(bypassingPlayers.get(player)));
                     getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player).toString());
-                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
+                    player.sendMessage("[AntiRelog by Jeremi] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
                 }
                 return true;
             } else if (args.length == 1) {
                 Player player = getServer().getPlayer(args[0]);
                 if (sender instanceof Player && !player.equals(sender) && !sender.hasPermission("antirelog.toggle.others")) {
-                    sender.sendMessage("[AntiRelog] " + ChatColor.RED + "You don't have permission to toggle others bypass.");
+                    sender.sendMessage("[AntiRelog by Jeremi] " + ChatColor.RED + "You don't have permission to toggle others bypass.");
                     return true;
                 }
                 if (player != null && bypassingPlayers.containsKey(player)) {
                     bypassingPlayers.put(player, !(bypassingPlayers.get(player)));
                     getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player).toString());
-                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
+                    player.sendMessage("[AntiRelog by Jeremi] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
                 } else {
-                    sender.sendMessage("[AntiRelog] " + ChatColor.RED + "Something went wrong. Is this player online?");
+                    sender.sendMessage("[AntiRelog by Jeremi] " + ChatColor.RED + "Something went wrong. Is this player online?");
                 }
                 return true;
             }
