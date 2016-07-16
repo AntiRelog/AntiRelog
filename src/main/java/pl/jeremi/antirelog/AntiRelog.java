@@ -5,9 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -93,6 +91,19 @@ public class AntiRelog extends JavaPlugin implements Listener {
             if (!bypassingPlayers.get(player))
                 handledPlayers.get(player).startCombat();
         }
+
+        if(event.getDamager() instanceof Arrow
+                || event.getDamager() instanceof Egg
+                || event.getDamager() instanceof Fireball
+                || event.getDamager() instanceof Snowball
+                || event.getDamager() instanceof EnderPearl
+                || event.getDamager() instanceof FishHook) {
+            if (((Projectile)event.getDamager()).getShooter() instanceof Player) {
+                Player damager = (Player) (((Projectile) event.getDamager()).getShooter());
+                if (!bypassingPlayers.get(damager))
+                    handledPlayers.get(damager).startCombat();
+            }
+        }
     }
 
     private boolean isHostile(Entity entity) {
@@ -104,8 +115,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
 
         if (Bukkit.getBukkitVersion().contains("1.10") && entity.getType() == EntityType.POLAR_BEAR) return true;
 
-        return entity.getType() == EntityType.WITHER_SKULL
-                || entity.getType() == EntityType.CREEPER
+        return entity.getType() == EntityType.CREEPER
                 || entity.getType() == EntityType.SKELETON
                 || entity.getType() == EntityType.SPIDER
                 || entity.getType() == EntityType.GIANT
