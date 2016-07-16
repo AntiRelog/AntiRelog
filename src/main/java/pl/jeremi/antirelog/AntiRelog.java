@@ -5,7 +5,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -92,12 +95,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 handledPlayers.get(player).startCombat();
         }
 
-        if(event.getDamager() instanceof Arrow
-                || event.getDamager() instanceof Egg
-                || event.getDamager() instanceof Fireball
-                || event.getDamager() instanceof Snowball
-                || event.getDamager() instanceof EnderPearl
-                || event.getDamager() instanceof FishHook) {
+        if(event.getDamager() instanceof Projectile) {
             if (((Projectile)event.getDamager()).getShooter() instanceof Player) {
                 Player damager = (Player) (((Projectile) event.getDamager()).getShooter());
                 if (!bypassingPlayers.get(damager))
