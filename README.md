@@ -17,7 +17,7 @@ If you have some free time, you can help me with some things.
 ### Things to do now:
 
 - [ ] Add compilation guide for Eclipse.
-- [ ] Some things in code needs refactoring.
+- [ ] Some things in code need refactoring.
 
 *Of course, your propositions are welcome.*
 
