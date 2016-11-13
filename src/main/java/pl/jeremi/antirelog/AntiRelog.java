@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.Level;
 
@@ -42,6 +43,13 @@ public class AntiRelog extends JavaPlugin implements Listener {
         config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
         config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {combatdur} seconds.");
         config.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");
+        config.addDefault("strict", true);
+        config.addDefault("subjects/passive", false);
+        config.addDefault("subjects/neutral", true);
+        config.addDefault("subjects/hostile", true);
+        config.addDefault("subjects/player", true);
+        config.addDefault("subjects/default", false);
+        config.addDefault("subjects/excludes", Collections.emptyList()); // Arrays.asList alternative
         config.options().copyDefaults(true);
         saveConfig();
 
@@ -84,7 +92,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onCombat(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player && isHostile(event.getEntity())) {
+        if (event.getDamager() instanceof Player && isSubject(event.getEntity())) {
             Player player = (Player) event.getDamager();
             if (!bypassingPlayers.get(player))
                 handledPlayers.get(player).startCombat();
@@ -104,14 +112,22 @@ public class AntiRelog extends JavaPlugin implements Listener {
         }
     }
 
+    private boolean isSubject(Entity entity) {
+        if (config.getStringList("subjects/excludes").contains(entity.toString())) return false;
+        if (config.getBoolean("subjects/hostile") && isHostile(entity)) return true;
+        if (config.getBoolean("subjects/neutral") && isNeutral(entity)) return true;
+        if (config.getBoolean("subjects/passive") && isPassive(entity)) return true;
+        if (config.getBoolean("subjects/player") && entity.getType().equals(EntityType.PLAYER)) return true;
+        if (config.getBoolean("subjects/default")) return true;
+        return false;
+    }
+
     private boolean isHostile(Entity entity) {
         if ((Bukkit.getBukkitVersion().contains("1.8") || Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10")) && (entity.getType() == EntityType.GUARDIAN || entity.getType() == EntityType.ENDERMITE))
             return true;
 
         if (Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") && entity.getType() == EntityType.SHULKER)
             return true;
-
-        if (Bukkit.getBukkitVersion().contains("1.10") && entity.getType() == EntityType.POLAR_BEAR) return true;
 
         return entity.getType() == EntityType.CREEPER
                 || entity.getType() == EntityType.SKELETON
@@ -120,7 +136,6 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 || entity.getType() == EntityType.ZOMBIE
                 || entity.getType() == EntityType.SLIME
                 || entity.getType() == EntityType.GHAST
-                || entity.getType() == EntityType.PIG_ZOMBIE
                 || entity.getType() == EntityType.ENDERMAN
                 || entity.getType() == EntityType.CAVE_SPIDER
                 || entity.getType() == EntityType.SILVERFISH
@@ -129,10 +144,29 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 || entity.getType() == EntityType.ENDER_DRAGON
                 || entity.getType() == EntityType.WITHER
                 || entity.getType() == EntityType.BAT
-                || entity.getType() == EntityType.WITCH
+                || entity.getType() == EntityType.WITCH;
+    }
+
+    private boolean isNeutral(Entity entity) {
+        return (Bukkit.getBukkitVersion().contains("1.10") && entity.getType() == EntityType.POLAR_BEAR)
+                || entity.getType() == EntityType.PIG_ZOMBIE
                 || entity.getType() == EntityType.WOLF
-                || entity.getType() == EntityType.IRON_GOLEM
-                || entity.getType() == EntityType.PLAYER;
+                || entity.getType() == EntityType.IRON_GOLEM;
+    }
+
+    private boolean isPassive(Entity entity) {
+        return entity.getType() == EntityType.CHICKEN
+                || entity.getType() == EntityType.SHEEP
+                || entity.getType() == EntityType.COW
+                || entity.getType() == EntityType.MUSHROOM_COW
+                || entity.getType() == EntityType.BAT
+                || entity.getType() == EntityType.PIG
+                || entity.getType() == EntityType.HORSE
+                || entity.getType() == EntityType.OCELOT
+                || entity.getType() == EntityType.SNOWMAN
+                || entity.getType() == EntityType.RABBIT
+                || entity.getType() == EntityType.SQUID
+                || entity.getType() == EntityType.VILLAGER;
     }
 
     @EventHandler
