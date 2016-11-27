@@ -1,6 +1,6 @@
 name: AntiRelog
 author: 'Jeremi <remi6397 gmail com>'
-version: ${project.version}
+version: @VERSION@
 main: pl.jeremi.antirelog.AntiRelog
 permissions:
   antirelog.*:
