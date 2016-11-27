@@ -123,10 +123,13 @@ public class AntiRelog extends JavaPlugin implements Listener {
     }
 
     private boolean isHostile(Entity entity) {
-        if ((Bukkit.getBukkitVersion().contains("1.8") || Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10")) && (entity.getType() == EntityType.GUARDIAN || entity.getType() == EntityType.ENDERMITE))
+        if ((Bukkit.getBukkitVersion().contains("1.8") || Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") || Bukkit.getBukkitVersion().contains("1.11")) && (entity.getType() == EntityType.GUARDIAN || entity.getType() == EntityType.ENDERMITE))
             return true;
 
-        if (Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") && entity.getType() == EntityType.SHULKER)
+        if ((Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") || Bukkit.getBukkitVersion().contains("1.11")) && entity.getType() == EntityType.SHULKER)
+            return true;
+
+        if (Bukkit.getBukkitVersion().contains("1.11") && (entity.getType() == EntityType.EVOKER || entity.getType() == EntityType.EVOKER_FANGS || entity.getType() == EntityType.VINDICATOR || entity.getType() == EntityType.VEX))
             return true;
 
         return entity.getType() == EntityType.CREEPER
@@ -134,6 +137,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 || entity.getType() == EntityType.SPIDER
                 || entity.getType() == EntityType.GIANT
                 || entity.getType() == EntityType.ZOMBIE
+                || entity.getType() == EntityType.ZOMBIE_VILLAGER
                 || entity.getType() == EntityType.SLIME
                 || entity.getType() == EntityType.GHAST
                 || entity.getType() == EntityType.ENDERMAN
@@ -148,8 +152,13 @@ public class AntiRelog extends JavaPlugin implements Listener {
     }
 
     private boolean isNeutral(Entity entity) {
-        return (Bukkit.getBukkitVersion().contains("1.10") && entity.getType() == EntityType.POLAR_BEAR)
-                || entity.getType() == EntityType.PIG_ZOMBIE
+        if (Bukkit.getBukkitVersion().contains("1.11") && entity.getType() == EntityType.LLAMA)
+            return true;
+
+        if ((Bukkit.getBukkitVersion().contains("1.10") || Bukkit.getBukkitVersion().contains("1.11")) && entity.getType() == EntityType.POLAR_BEAR)
+            return true;
+
+        return entity.getType() == EntityType.PIG_ZOMBIE
                 || entity.getType() == EntityType.WOLF
                 || entity.getType() == EntityType.IRON_GOLEM;
     }
