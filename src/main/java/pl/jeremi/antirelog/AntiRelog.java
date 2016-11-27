@@ -97,6 +97,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
             if (!bypassingPlayers.get(player))
                 handledPlayers.get(player).startCombat();
         }
+
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
             if (!bypassingPlayers.get(player))
@@ -104,7 +105,8 @@ public class AntiRelog extends JavaPlugin implements Listener {
         }
 
         if(event.getDamager() instanceof Projectile) {
-            if (((Projectile)event.getDamager()).getShooter() instanceof Player) {
+            if (((Projectile)event.getDamager()).getShooter() instanceof Player &&
+                    isSubject(event.getEntity())) {
                 Player damager = (Player) (((Projectile) event.getDamager()).getShooter());
                 if (!bypassingPlayers.get(damager))
                     handledPlayers.get(damager).startCombat();

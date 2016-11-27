@@ -30,12 +30,12 @@ processResources {
 }
 
 jar {
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } } {
-        exclude "LICENSE.*"
-        exclude "license.*"
-        exclude "plugin.yml"
-    }
-
+    // from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } } {
+    //     exclude "LICENSE.*"
+    //     exclude "license.*"
+    //     exclude "plugin.yml"
+    //     exclude "META-INF"
+    // }
 }
 
 task wrapper(type: Wrapper) {
