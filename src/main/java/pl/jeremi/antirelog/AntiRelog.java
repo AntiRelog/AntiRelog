@@ -128,10 +128,12 @@ public class AntiRelog extends JavaPlugin implements Listener {
         if ((Bukkit.getBukkitVersion().contains("1.8") || Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") || Bukkit.getBukkitVersion().contains("1.11")) && (entity.getType() == EntityType.GUARDIAN || entity.getType() == EntityType.ENDERMITE))
             return true;
 
-        if ((Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") || Bukkit.getBukkitVersion().contains("1.11")) && entity.getType() == EntityType.SHULKER)
+        if ((Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") || Bukkit.getBukkitVersion().contains("1.11"))
+                && entity.getType() == EntityType.SHULKER)
             return true;
 
-        if (Bukkit.getBukkitVersion().contains("1.11") && (entity.getType() == EntityType.EVOKER || entity.getType() == EntityType.EVOKER_FANGS || entity.getType() == EntityType.VINDICATOR || entity.getType() == EntityType.VEX))
+        if (Bukkit.getBukkitVersion().contains("1.11")
+                && (entity.getType() == EntityType.EVOKER || entity.getType() == EntityType.EVOKER_FANGS || entity.getType() == EntityType.VINDICATOR || entity.getType() == EntityType.VEX || entity.getType() == EntityType.HUSK || entity.getType() == EntityType.ZOMBIE_VILLAGER))
             return true;
 
         return entity.getType() == EntityType.CREEPER
@@ -139,7 +141,6 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 || entity.getType() == EntityType.SPIDER
                 || entity.getType() == EntityType.GIANT
                 || entity.getType() == EntityType.ZOMBIE
-                || entity.getType() == EntityType.ZOMBIE_VILLAGER
                 || entity.getType() == EntityType.SLIME
                 || entity.getType() == EntityType.GHAST
                 || entity.getType() == EntityType.ENDERMAN
