@@ -28,3 +28,7 @@ processResources {
         'VERSION': project.version.split('-')[0]
     ]
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.14.1'
+}
