@@ -29,6 +29,10 @@ processResources {
     ]
 }
 
+jar {
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
 task wrapper(type: Wrapper) {
     gradleVersion = '2.14.1'
 }
