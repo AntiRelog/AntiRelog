@@ -43,13 +43,12 @@ public class AntiRelog extends JavaPlugin implements Listener {
         config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
         config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {combatdur} seconds.");
         config.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");
-        config.addDefault("strict", true);
-        config.addDefault("subjects/passive", false);
-        config.addDefault("subjects/neutral", true);
-        config.addDefault("subjects/hostile", true);
-        config.addDefault("subjects/player", true);
-        config.addDefault("subjects/default", false);
-        config.addDefault("subjects/excludes", Collections.emptyList()); // Arrays.asList alternative
+        config.addDefault("subjects.passive", false);
+        config.addDefault("subjects.neutral", true);
+        config.addDefault("subjects.hostile", true);
+        config.addDefault("subjects.player", true);
+        config.addDefault("subjects.default", false);
+        config.addDefault("subjects.excludes", Collections.emptyList()); // Arrays.asList alternative
         config.options().copyDefaults(true);
         saveConfig();
 
