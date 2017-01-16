@@ -1,7 +1,8 @@
 name: AntiRelog
 author: 'Jeremi <remi6397 gmail com>'
-version: 3.0.0
+version: 4.0.0
 main: pl.jeremi.antirelog.AntiRelog
+depend: ['BossBarAPI']
 permissions:
   antirelog.*:
     description: Get access to all functions of AntiRelog.

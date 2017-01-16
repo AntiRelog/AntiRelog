@@ -24,6 +24,7 @@ buildNumber.properties
 ### Gradle ###
 .gradle
 /build/
+/classes/
 
 # Ignore Gradle GUI config
 gradle-app.setting

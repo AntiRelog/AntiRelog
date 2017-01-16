@@ -1,6 +1,5 @@
 package pl.jeremi.antirelog;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -33,22 +32,18 @@ public class AntiRelog extends JavaPlugin implements Listener {
     public void onEnable() {
         config = getConfig();
 
-        config.addDefault("enable-barapi", true);
-        config.addDefault("combat-len", 5);
-        config.addDefault("vanish-timeout", 3);
-        config.addDefault("busy-message", "&cAntiRelog");
-        config.addDefault("free-message", "&aAntiRelog");
+        config.addDefault("enable-bar", true);
+        config.addDefault("combat-len", 15);
+        config.addDefault("vanish-timeout", 5);
+        config.addDefault("busy-message", "&cDo not log out before&7: &r{timeleft} secs.");
+        config.addDefault("free-message", "&aYou can now log out");
         config.addDefault("busy-color", "red");
         config.addDefault("free-color", "green");
+        config.addDefault("bar-style", "segmented_6");
         config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
-        config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {combatdur} seconds.");
+        config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeleft} seconds.");
         config.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");
-        config.addDefault("subjects.passive", false);
-        config.addDefault("subjects.neutral", true);
-        config.addDefault("subjects.hostile", true);
-        config.addDefault("subjects.player", true);
-        config.addDefault("subjects.default", false);
-        config.addDefault("subjects.excludes", Collections.emptyList()); // Arrays.asList alternative
+        config.addDefault("subjects", new String[] {"Player", "Zombie", "Husk", "Zombie_Villager"});
         config.options().copyDefaults(true);
         saveConfig();
 
@@ -56,7 +51,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
         bypassingPlayers = new HashMap<Player, Boolean>();
         getServer().getPluginManager().registerEvents(this, this);
 
-        CombatHandle.enableBarApi = AntiRelog.config.getBoolean("enable-barapi");
+        CombatHandle.enableBar = AntiRelog.config.getBoolean("enable-bar");
     }
 
     @Override
@@ -91,7 +86,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onCombat(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player && isSubject(event.getEntity())) {
+        if (event.getDamager() instanceof Player && isSubject(event.getEntity().getType())) {
             Player player = (Player) event.getDamager();
             if (!bypassingPlayers.get(player))
                 handledPlayers.get(player).startCombat();
@@ -105,7 +100,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
 
         if(event.getDamager() instanceof Projectile) {
             if (((Projectile)event.getDamager()).getShooter() instanceof Player &&
-                    isSubject(event.getEntity())) {
+                    isSubject(event.getEntity().getType())) {
                 Player damager = (Player) (((Projectile) event.getDamager()).getShooter());
                 if (!bypassingPlayers.get(damager))
                     handledPlayers.get(damager).startCombat();
@@ -113,71 +108,11 @@ public class AntiRelog extends JavaPlugin implements Listener {
         }
     }
 
-    private boolean isSubject(Entity entity) {
-        if (config.getStringList("subjects/excludes").contains(entity.toString())) return false;
-        if (config.getBoolean("subjects/hostile") && isHostile(entity)) return true;
-        if (config.getBoolean("subjects/neutral") && isNeutral(entity)) return true;
-        if (config.getBoolean("subjects/passive") && isPassive(entity)) return true;
-        if (config.getBoolean("subjects/player") && entity.getType().equals(EntityType.PLAYER)) return true;
-        if (config.getBoolean("subjects/default")) return true;
+    private boolean isSubject(EntityType entity) {
+        for ( String s : config.getStringList("subjects") ) {
+            if (s.toUpperCase().equals(entity.name())) return true;
+        }
         return false;
-    }
-
-    private boolean isHostile(Entity entity) {
-        if ((Bukkit.getBukkitVersion().contains("1.8") || Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") || Bukkit.getBukkitVersion().contains("1.11")) && (entity.getType() == EntityType.GUARDIAN || entity.getType() == EntityType.ENDERMITE))
-            return true;
-
-        if ((Bukkit.getBukkitVersion().contains("1.9") || Bukkit.getBukkitVersion().contains("1.10") || Bukkit.getBukkitVersion().contains("1.11"))
-                && entity.getType() == EntityType.SHULKER)
-            return true;
-
-        if (Bukkit.getBukkitVersion().contains("1.11")
-                && (entity.getType() == EntityType.EVOKER || entity.getType() == EntityType.EVOKER_FANGS || entity.getType() == EntityType.VINDICATOR || entity.getType() == EntityType.VEX || entity.getType() == EntityType.HUSK || entity.getType() == EntityType.ZOMBIE_VILLAGER))
-            return true;
-
-        return entity.getType() == EntityType.CREEPER
-                || entity.getType() == EntityType.SKELETON
-                || entity.getType() == EntityType.SPIDER
-                || entity.getType() == EntityType.GIANT
-                || entity.getType() == EntityType.ZOMBIE
-                || entity.getType() == EntityType.SLIME
-                || entity.getType() == EntityType.GHAST
-                || entity.getType() == EntityType.ENDERMAN
-                || entity.getType() == EntityType.CAVE_SPIDER
-                || entity.getType() == EntityType.SILVERFISH
-                || entity.getType() == EntityType.BLAZE
-                || entity.getType() == EntityType.MAGMA_CUBE
-                || entity.getType() == EntityType.ENDER_DRAGON
-                || entity.getType() == EntityType.WITHER
-                || entity.getType() == EntityType.BAT
-                || entity.getType() == EntityType.WITCH;
-    }
-
-    private boolean isNeutral(Entity entity) {
-        if (Bukkit.getBukkitVersion().contains("1.11") && entity.getType() == EntityType.LLAMA)
-            return true;
-
-        if ((Bukkit.getBukkitVersion().contains("1.10") || Bukkit.getBukkitVersion().contains("1.11")) && entity.getType() == EntityType.POLAR_BEAR)
-            return true;
-
-        return entity.getType() == EntityType.PIG_ZOMBIE
-                || entity.getType() == EntityType.WOLF
-                || entity.getType() == EntityType.IRON_GOLEM;
-    }
-
-    private boolean isPassive(Entity entity) {
-        return entity.getType() == EntityType.CHICKEN
-                || entity.getType() == EntityType.SHEEP
-                || entity.getType() == EntityType.COW
-                || entity.getType() == EntityType.MUSHROOM_COW
-                || entity.getType() == EntityType.BAT
-                || entity.getType() == EntityType.PIG
-                || entity.getType() == EntityType.HORSE
-                || entity.getType() == EntityType.OCELOT
-                || entity.getType() == EntityType.SNOWMAN
-                || entity.getType() == EntityType.RABBIT
-                || entity.getType() == EntityType.SQUID
-                || entity.getType() == EntityType.VILLAGER;
     }
 
     @EventHandler
@@ -189,10 +124,10 @@ public class AntiRelog extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        if (!bypassingPlayers.get(player) && handledPlayers.get(player).isInCombat()) {
+        if (!bypassingPlayers.get(player) && handledPlayers.get(player).shouldBePunished()) {
             player.setHealth(0);
             if (!config.getString("broadcast-message").isEmpty())
-                getServer().broadcastMessage(ChatColor.translateAlternateColorCodes('&', config.getString("broadcast-message").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName()).replaceAll("\\{combatdur\\}", String.valueOf(config.getInt("combat-len")))));
+                event.setQuitMessage(ChatColor.translateAlternateColorCodes('&', config.getString("broadcast-message").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName())));
         }
         if (handledPlayers.containsKey(player)) {
             handledPlayers.get(player).cleanUp();

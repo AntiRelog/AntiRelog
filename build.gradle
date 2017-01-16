@@ -5,13 +5,14 @@ group = 'pl.jeremi.antirelog'
 version = '4.0.0-SNAPSHOT'
 archivesBaseName = 'AntiRelog'
 
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     jcenter()
     mavenCentral()
     maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 }
 
 dependencies {
