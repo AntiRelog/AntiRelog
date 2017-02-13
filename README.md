@@ -8,8 +8,9 @@ If you have some free time, you can help me with some things.
 
 ### Things to do now:
 
-- [ ] Add deployment guide.
+- [x] Add deployment guide. *(No longer needed, we have gradle now)*
 - [ ] Some things in code need refactoring.
+- [ ] Add tests.
 
 *Of course, your propositions are welcome.*
 
