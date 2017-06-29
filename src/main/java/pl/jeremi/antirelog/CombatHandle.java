@@ -83,21 +83,24 @@ class CombatHandle {
             player.sendMessage(busyChat);
         combatTimeLeft = combatTimeOut;
         if (combatTickTask != -1) plugin.getServer().getScheduler().cancelTask(combatTickTask);
-        combatTickTask = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-            if (combatTimeLeft == 0) {
-                endCombat();
+        combatTickTask = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+            @Override
+            public void run() {
+                if (combatTimeLeft == 0) {
+                    CombatHandle.this.endCombat();
 
-                return;
+                    return;
+                }
+
+                player.playNote(player.getLocation(), Instrument.PIANO, Note.sharp(1, Note.Tone.C));
+                if (enableBar) {
+                    busyBar.setProgress((double) combatTimeLeft / combatTimeOut);
+                    // Update time in message
+                    busyBar.setTitle(CombatHandle.this.formatCombatBarMessage("busy-message"));
+                }
+
+                combatTimeLeft--;
             }
-
-            player.playNote(player.getLocation(), Instrument.PIANO, Note.sharp(1, Note.Tone.C));
-            if (enableBar) {
-                busyBar.setProgress((double) combatTimeLeft / combatTimeOut);
-                // Update time in message
-                busyBar.setTitle(formatCombatBarMessage("busy-message"));
-            }
-
-            combatTimeLeft--;
         }, 0, 20);
         //combatTickTask.timedRun(true);
         inCombat = true;
@@ -110,7 +113,12 @@ class CombatHandle {
             freeBar.setVisible(true);
             freeBar.setProgress(1d);
             //barVanishTickTask.timedRun(true);
-            barVanishTickTask = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> freeBar.setVisible(false), vanishTimeOut * 20);
+            barVanishTickTask = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+                @Override
+                public void run() {
+                    freeBar.setVisible(false);
+                }
+            }, vanishTimeOut * 20);
         }
         plugin.getServer().getScheduler().cancelTask(combatTickTask);
         combatTickTask = -1;
