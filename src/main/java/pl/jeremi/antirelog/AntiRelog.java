@@ -4,7 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -16,7 +15,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.Level;
 
@@ -41,14 +39,14 @@ public class AntiRelog extends JavaPlugin implements Listener {
         config.addDefault("free-color", "green");
         config.addDefault("bar-style", "segmented_6");
         config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
-        config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeleft} seconds.");
+        config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeout} seconds.");
         config.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");
-        config.addDefault("subjects", new String[] {"Player", "Zombie", "Husk", "Zombie_Villager"});
+        config.addDefault("subjects", new String[]{"Player", "Zombie", "Husk", "Zombie_Villager"});
         config.options().copyDefaults(true);
         saveConfig();
 
-        handledPlayers = new HashMap<Player, CombatHandle>();
-        bypassingPlayers = new HashMap<Player, Boolean>();
+        handledPlayers = new HashMap<>();
+        bypassingPlayers = new HashMap<>();
         getServer().getPluginManager().registerEvents(this, this);
 
         CombatHandle.enableBar = AntiRelog.config.getBoolean("enable-bar");
@@ -62,21 +60,21 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 if (bypassingPlayers.containsKey(player)) {
                     bypassingPlayers.put(player, !(bypassingPlayers.get(player)));
                     getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player).toString());
-                    player.sendMessage("[AntiRelog by Jeremi] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
+                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
                 }
                 return true;
             } else if (args.length == 1) {
                 Player player = getServer().getPlayer(args[0]);
-                if (sender instanceof Player && !player.equals(sender) && !sender.hasPermission("antirelog.toggle.others")) {
-                    sender.sendMessage("[AntiRelog by Jeremi] " + ChatColor.RED + "You don't have permission to toggle others bypass.");
+                if (player != null && sender instanceof Player && !player.equals(sender) && !sender.hasPermission("antirelog.toggle.others")) {
+                    sender.sendMessage("[AntiRelog] " + ChatColor.RED + "You don't have permission to toggle others bypass.");
                     return true;
                 }
                 if (player != null && bypassingPlayers.containsKey(player)) {
                     bypassingPlayers.put(player, !(bypassingPlayers.get(player)));
                     getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player).toString());
-                    player.sendMessage("[AntiRelog by Jeremi] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
+                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
                 } else {
-                    sender.sendMessage("[AntiRelog by Jeremi] " + ChatColor.RED + "Something went wrong. Is this player online?");
+                    sender.sendMessage("[AntiRelog] " + ChatColor.RED + "Something went wrong. Is this player online?");
                 }
                 return true;
             }
@@ -84,6 +82,7 @@ public class AntiRelog extends JavaPlugin implements Listener {
         return false;
     }
 
+    @SuppressWarnings("unused")
     @EventHandler
     public void onCombat(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player && isSubject(event.getEntity().getType())) {
@@ -98,8 +97,8 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 handledPlayers.get(player).startCombat();
         }
 
-        if(event.getDamager() instanceof Projectile) {
-            if (((Projectile)event.getDamager()).getShooter() instanceof Player &&
+        if (event.getDamager() instanceof Projectile) {
+            if (((Projectile) event.getDamager()).getShooter() instanceof Player &&
                     isSubject(event.getEntity().getType())) {
                 Player damager = (Player) (((Projectile) event.getDamager()).getShooter());
                 if (!bypassingPlayers.get(damager))
@@ -108,33 +107,47 @@ public class AntiRelog extends JavaPlugin implements Listener {
         }
     }
 
+    protected static String getConfigString(String key) {
+        String value = config.getString(key);
+        return value != null
+                ? value
+                : "";
+    }
+
     private boolean isSubject(EntityType entity) {
-        for ( String s : config.getStringList("subjects") ) {
+        for (String s : config.getStringList("subjects")) {
             if (s.toUpperCase().equals(entity.name())) return true;
         }
         return false;
     }
 
+    @SuppressWarnings("unused")
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         handledPlayers.put(event.getPlayer(), new CombatHandle(event.getPlayer(), this));
         bypassingPlayers.put(event.getPlayer(), event.getPlayer().hasPermission("antirelog.bypass"));
     }
 
+    @SuppressWarnings("unused")
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         if (!bypassingPlayers.get(player) && handledPlayers.get(player).shouldBePunished()) {
             player.setHealth(0);
-            if (!config.getString("broadcast-message").isEmpty())
-                event.setQuitMessage(ChatColor.translateAlternateColorCodes('&', config.getString("broadcast-message").replaceAll("\\{displayname\\}", player.getDisplayName()).replaceAll("\\{username\\}", player.getName())));
+            String broadcastMessage = config.getString("broadcast-message");
+            if (broadcastMessage != null && !broadcastMessage.isEmpty()) {
+                event.setQuitMessage(ChatColor.translateAlternateColorCodes(
+                        '&',
+                        broadcastMessage
+                                .replaceAll("\\{displayname}", player.getDisplayName())
+                                .replaceAll("\\{username}", player.getName())
+                ));
+            }
         }
         if (handledPlayers.containsKey(player)) {
             handledPlayers.get(player).cleanUp();
             handledPlayers.remove(player);
         }
-        if (bypassingPlayers.containsKey(player)) {
-            bypassingPlayers.remove(player);
-        }
+        bypassingPlayers.remove(player);
     }
 }

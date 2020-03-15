@@ -13,6 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * Created by Jeremiasz N. on 2016-04-26.
  */
+@SuppressWarnings("FieldCanBeLocal")
 class CombatHandle {
     static boolean enableBar;
     private int combatTimeLeft;
@@ -24,7 +25,7 @@ class CombatHandle {
     private BossBar busyBar, freeBar;
     private Player player;
     private boolean inCombat;
-    private int combatTickTask = -1, barVanishTickTask = -1;
+    private int combatTickTask = -1;
 
     CombatHandle(Player player, JavaPlugin plugin) {
         this.player = player;
@@ -37,15 +38,15 @@ class CombatHandle {
         freeChat = formatCombatChatMessage("free-chat");
 
         if (enableBar) {
-            busyColor = BarColor.valueOf(AntiRelog.config.getString("busy-color").toUpperCase());
-            freeColor = BarColor.valueOf(AntiRelog.config.getString("free-color").toUpperCase());
-            barStyle = BarStyle.valueOf(AntiRelog.config.getString("bar-style").toUpperCase());
+            busyColor = BarColor.valueOf(AntiRelog.getConfigString("busy-color").toUpperCase());
+            freeColor = BarColor.valueOf(AntiRelog.getConfigString("free-color").toUpperCase());
+            barStyle = BarStyle.valueOf(AntiRelog.getConfigString("bar-style").toUpperCase());
 
-            busyBar = Bukkit.createBossBar(formatCombatBarMessage("busy-message"), busyColor, barStyle);
+            busyBar = Bukkit.createBossBar(formatCombatChatMessage("busy-message"), busyColor, barStyle);
             busyBar.addPlayer(player);
             busyBar.setVisible(false);
 
-            freeBar = Bukkit.createBossBar(formatCombatBarMessage("free-message"), freeColor, barStyle);
+            freeBar = Bukkit.createBossBar(formatCombatChatMessage("free-message"), freeColor, barStyle);
             freeBar.addPlayer(player);
             freeBar.setVisible(false);
         }
@@ -53,18 +54,12 @@ class CombatHandle {
         inCombat = false;
     }
 
-    private String formatCombatBarMessage(String message) {
-        return ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString(message))
-                .replaceAll("\\{displayname\\}", player.getDisplayName())
-                .replaceAll("\\{username\\}", player.getName())
-                .replaceAll("\\{timeleft\\}", String.valueOf(combatTimeLeft));
-    }
-
     private String formatCombatChatMessage(String message) {
-        return ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString(message))
-                .replaceAll("\\{displayname\\}", player.getDisplayName())
-                .replaceAll("\\{username\\}", player.getName())
-                .replaceAll("\\{timeleft\\}", String.valueOf(combatTimeOut));
+        return ChatColor.translateAlternateColorCodes('&', AntiRelog.getConfigString(message))
+                .replaceAll("\\{displayname}", player.getDisplayName())
+                .replaceAll("\\{username}", player.getName())
+                .replaceAll("\\{timeleft}", String.valueOf(combatTimeLeft))
+                .replaceAll("\\{timeout}", String.valueOf(combatTimeOut));
     }
 
 
@@ -74,7 +69,7 @@ class CombatHandle {
 
     void startCombat() {
         if (enableBar) {
-            busyBar.setTitle(formatCombatBarMessage("busy-message"));
+            busyBar.setTitle(formatCombatChatMessage("busy-message"));
             busyBar.setVisible(true);
             busyBar.setProgress(1d);
             freeBar.setVisible(false);
@@ -96,7 +91,7 @@ class CombatHandle {
                 if (enableBar) {
                     busyBar.setProgress((double) combatTimeLeft / combatTimeOut);
                     // Update time in message
-                    busyBar.setTitle(CombatHandle.this.formatCombatBarMessage("busy-message"));
+                    busyBar.setTitle(CombatHandle.this.formatCombatChatMessage("busy-message"));
                 }
 
                 combatTimeLeft--;
@@ -112,8 +107,7 @@ class CombatHandle {
 
             freeBar.setVisible(true);
             freeBar.setProgress(1d);
-            //barVanishTickTask.timedRun(true);
-            barVanishTickTask = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
                 @Override
                 public void run() {
                     freeBar.setVisible(false);
@@ -133,7 +127,6 @@ class CombatHandle {
     void cleanUp() {
         //combatTickTask.cancel();
         if (enableBar) {
-            //barVanishTickTask.cancel();
             busyBar.removeAll();
             freeBar.removeAll();
         }
