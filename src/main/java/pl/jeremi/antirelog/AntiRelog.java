@@ -23,8 +23,8 @@ import java.util.logging.Level;
  */
 public class AntiRelog extends JavaPlugin implements Listener {
     static FileConfiguration config;
-    private HashMap<Player, CombatHandle> handledPlayers;
-    private HashMap<Player, Boolean> bypassingPlayers;
+    private HashMap<Player, CombatHandle> handledPlayers = new HashMap<>();
+    private HashMap<Player, Boolean> bypassingPlayers = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -45,8 +45,6 @@ public class AntiRelog extends JavaPlugin implements Listener {
         config.options().copyDefaults(true);
         saveConfig();
 
-        handledPlayers = new HashMap<>();
-        bypassingPlayers = new HashMap<>();
         getServer().getPluginManager().registerEvents(this, this);
 
         CombatHandle.enableBar = AntiRelog.config.getBoolean("enable-bar");
@@ -78,6 +76,8 @@ public class AntiRelog extends JavaPlugin implements Listener {
                 }
                 return true;
             }
+        } else if (command.getName().equalsIgnoreCase("arreload")) {
+            reloadConfig();
         }
         return false;
     }
