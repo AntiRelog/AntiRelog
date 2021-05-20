@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -150,5 +151,13 @@ public class AntiRelog extends JavaPlugin implements Listener {
             handledPlayers.remove(player);
         }
         bypassingPlayers.remove(player);
+    }
+    @EventHandler
+    public void onDeath(PlayerDeathEvent event){
+        Player player = event.getEntity().getPlayer();
+        if(handledPlayers.get(player).combatTimeLeft != 0){
+            handledPlayers.get(player).combatTimeLeft = 0;
+            handledPlayers.get(player).endCombat();
+        }
     }
 }
