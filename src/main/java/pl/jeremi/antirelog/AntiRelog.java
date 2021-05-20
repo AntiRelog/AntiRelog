@@ -37,7 +37,8 @@ public class AntiRelog extends JavaPlugin implements Listener {
         config.addDefault("free-message", "&aYou can now log out");
         config.addDefault("busy-color", "red");
         config.addDefault("free-color", "green");
-        config.addDefault("bar-style", "segmented_6");
+        config.addDefault("busy-style", "segmented_6");
+        config.addDefault("free-style", "solid");
         config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
         config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeout} seconds.");
         config.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");

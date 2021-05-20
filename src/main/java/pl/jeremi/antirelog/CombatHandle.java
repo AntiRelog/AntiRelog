@@ -16,12 +16,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 @SuppressWarnings("FieldCanBeLocal")
 class CombatHandle {
     static boolean enableBar;
-    private int combatTimeLeft;
+    public int combatTimeLeft;
     private int combatTimeOut, vanishTimeOut;
     private JavaPlugin plugin;
     private String busyChat, freeChat;
     private BarColor busyColor, freeColor;
-    private BarStyle barStyle;
+    private BarStyle busyStyle, freeStyle;
     private BossBar busyBar, freeBar;
     private Player player;
     private boolean inCombat;
@@ -40,13 +40,14 @@ class CombatHandle {
         if (enableBar) {
             busyColor = BarColor.valueOf(AntiRelog.getConfigString("busy-color").toUpperCase());
             freeColor = BarColor.valueOf(AntiRelog.getConfigString("free-color").toUpperCase());
-            barStyle = BarStyle.valueOf(AntiRelog.getConfigString("bar-style").toUpperCase());
+            busyStyle = BarStyle.valueOf(AntiRelog.getConfigString("busy-style").toUpperCase());
+            freeStyle = BarStyle.valueOf(AntiRelog.getConfigString("free-style").toUpperCase());
 
-            busyBar = Bukkit.createBossBar(formatCombatChatMessage("busy-message"), busyColor, barStyle);
+            busyBar = Bukkit.createBossBar(formatCombatChatMessage("busy-message"), busyColor, busyStyle);
             busyBar.addPlayer(player);
             busyBar.setVisible(false);
 
-            freeBar = Bukkit.createBossBar(formatCombatChatMessage("free-message"), freeColor, barStyle);
+            freeBar = Bukkit.createBossBar(formatCombatChatMessage("free-message"), freeColor, freeStyle);
             freeBar.addPlayer(player);
             freeBar.setVisible(false);
         }
