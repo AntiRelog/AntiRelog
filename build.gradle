@@ -4,7 +4,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 
 group = 'pl.jeremi.antirelog'
-version = '4.2.1-SNAPSHOT'
+version = '4.2.0-SNAPSHOT'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
