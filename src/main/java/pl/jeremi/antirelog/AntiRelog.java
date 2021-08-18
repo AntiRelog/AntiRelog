@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -37,7 +38,8 @@ public class AntiRelog extends JavaPlugin implements Listener {
         config.addDefault("free-message", "&aYou can now log out");
         config.addDefault("busy-color", "red");
         config.addDefault("free-color", "green");
-        config.addDefault("bar-style", "segmented_6");
+        config.addDefault("busy-style", "segmented_6");
+        config.addDefault("free-style", "solid");
         config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
         config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeout} seconds.");
         config.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");
@@ -149,5 +151,13 @@ public class AntiRelog extends JavaPlugin implements Listener {
             handledPlayers.remove(player);
         }
         bypassingPlayers.remove(player);
+    }
+    @EventHandler
+    public void onDeath(PlayerDeathEvent event){
+        Player player = event.getEntity().getPlayer();
+        if(handledPlayers.get(player).combatTimeLeft != 0){
+            handledPlayers.get(player).combatTimeLeft = 0;
+            handledPlayers.get(player).endCombat();
+        }
     }
 }
