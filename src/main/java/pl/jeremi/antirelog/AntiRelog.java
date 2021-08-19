@@ -22,7 +22,7 @@ import java.util.logging.Level;
 /**
  * Created by Jeremiasz N. on 2016-04-26.
  */
-public class AntiRelog extends JavaPlugin implements Listener {
+public final class AntiRelog extends JavaPlugin implements Listener {
     static FileConfiguration config;
     private HashMap<Player, CombatHandle> handledPlayers;
     private HashMap<Player, Boolean> bypassingPlayers;
@@ -84,9 +84,8 @@ public class AntiRelog extends JavaPlugin implements Listener {
         return false;
     }
 
-    @SuppressWarnings("unused")
     @EventHandler
-    public void onCombat(EntityDamageByEntityEvent event) {
+    public void onCombat(final EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player && isSubject(event.getEntity().getType())) {
             Player player = (Player) event.getDamager();
             if (!bypassingPlayers.get(player))
@@ -123,16 +122,14 @@ public class AntiRelog extends JavaPlugin implements Listener {
         return false;
     }
 
-    @SuppressWarnings("unused")
     @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
+    public void onJoin(final PlayerJoinEvent event) {
         handledPlayers.put(event.getPlayer(), new CombatHandle(event.getPlayer(), this));
         bypassingPlayers.put(event.getPlayer(), event.getPlayer().hasPermission("antirelog.bypass"));
     }
 
-    @SuppressWarnings("unused")
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onQuit(PlayerQuitEvent event) {
+    public void onQuit(final PlayerQuitEvent event) {
         Player player = event.getPlayer();
         if (!bypassingPlayers.get(player) && handledPlayers.get(player).shouldBePunished()) {
             player.setHealth(0);
@@ -153,11 +150,11 @@ public class AntiRelog extends JavaPlugin implements Listener {
         bypassingPlayers.remove(player);
     }
     @EventHandler
-    public void onDeath(PlayerDeathEvent event){
+    public void onDeath(final PlayerDeathEvent event){
         Player player = event.getEntity().getPlayer();
-        if(handledPlayers.get(player).combatTimeLeft != 0){
-            handledPlayers.get(player).combatTimeLeft = 0;
-            handledPlayers.get(player).endCombat();
+        CombatHandle combatHandle = handledPlayers.get(player);
+        if(combatHandle.getCombatTimeLeft() != 0){
+            combatHandle.reset();
         }
     }
 }
