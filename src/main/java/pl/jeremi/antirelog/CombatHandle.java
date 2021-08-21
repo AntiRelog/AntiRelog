@@ -56,8 +56,9 @@ class CombatHandle {
     }
 
 
-    boolean shouldBePunished() {
+    boolean isInCombat() {
         return inCombat;
+        //return combatTimeLeft != 0;
     }
 
     void startCombat() {
@@ -117,9 +118,6 @@ class CombatHandle {
             busyBar.removeAll();
             freeBar.removeAll();
         }
-    }
-    int getCombatTimeLeft(){
-        return combatTimeLeft;
     }
     void reset(){
         endCombat();

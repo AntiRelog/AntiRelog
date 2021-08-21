@@ -131,7 +131,7 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(final PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        if (!bypassingPlayers.get(player) && handledPlayers.get(player).shouldBePunished()) {
+        if (!bypassingPlayers.get(player) && handledPlayers.get(player).isInCombat()) {
             player.setHealth(0);
             String broadcastMessage = config.getString("broadcast-message");
             if (broadcastMessage != null && !broadcastMessage.isEmpty()) {
@@ -153,7 +153,7 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     public void onDeath(final PlayerDeathEvent event){
         Player player = event.getEntity().getPlayer();
         CombatHandle combatHandle = handledPlayers.get(player);
-        if(combatHandle.getCombatTimeLeft() != 0){
+        if(combatHandle.isInCombat()){
             combatHandle.reset();
         }
     }
