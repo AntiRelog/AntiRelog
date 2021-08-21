@@ -1,7 +1,7 @@
 name: AntiRelog
 author: 'Jeremiasz N. <remi6397 gmail com>'
 version: @VERSION@
-api-version: '1.14'
+api-version: '1.16'
 main: pl.jeremi.antirelog.AntiRelog
 permissions:
   antirelog.*:
