@@ -84,8 +84,11 @@ public final class AntiRelog extends JavaPlugin implements Listener {
         return false;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onCombat(final EntityDamageByEntityEvent event) {
+        if(event.isCancelled())
+            return;
+
         if (event.getDamager() instanceof Player && isSubject(event.getEntity().getType())) {
             Player player = (Player) event.getDamager();
             if (!bypassingPlayers.get(player))
