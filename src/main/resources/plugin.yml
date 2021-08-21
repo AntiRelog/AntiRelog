@@ -8,9 +8,13 @@ permissions:
     description: Get access to all functions of AntiRelog.
     default: op
     children:
+      antirelog.reload: true
       antirelog.bypass: true
       antirelog.toggle: true
       antirelog.toggle.others: true
+  antirelog.reload:
+    description: Reload Anti-Relog config.
+    default: op
   antirelog.bypass:
     description: Bypass Anti-Relog protection.
     default: op
@@ -30,3 +34,6 @@ commands:
     usage: |
       AntiRelog by Jeremi
       /artoggle [player]
+  arreload:
+    description: AntiRelog reload config
+    permission: antirelog.reload
