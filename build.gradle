@@ -5,8 +5,8 @@ apply plugin: 'java'
 group = 'pl.jeremi.antirelog'
 version = '4.2.0-SNAPSHOT'
 
-sourceCompatibility = 16
-targetCompatibility = 16
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly "io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT"
+    compileOnly "com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT"
 }
 
 processResources {
