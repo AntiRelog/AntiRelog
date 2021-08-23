@@ -15,17 +15,16 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
-import java.util.logging.Level;
 
 /**
  * Created by Jeremiasz N. on 2016-04-26.
  */
 public final class AntiRelog extends JavaPlugin implements Listener {
     static FileConfiguration config;
-    private HashMap<Player, CombatHandle> handledPlayers = new HashMap<>();
-    private HashMap<Player, Boolean> bypassingPlayers = new HashMap<>();
+    private final HashMap<Player, CombatHandle> handledPlayers = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -53,66 +52,37 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("artoggle")) {
-            if (sender instanceof Player && args.length == 0) {
-                Player player = (Player) sender;
-                if (bypassingPlayers.containsKey(player)) {
-                    bypassingPlayers.put(player, !(bypassingPlayers.get(player)));
-                    getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player).toString());
-                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
-                }
-                return true;
-            } else if (args.length == 1) {
-                Player player = getServer().getPlayer(args[0]);
-                if (player != null && sender instanceof Player && !player.equals(sender) && !sender.hasPermission("antirelog.toggle.others")) {
-                    sender.sendMessage("[AntiRelog] " + ChatColor.RED + "You don't have permission to toggle others bypass.");
-                    return true;
-                }
-                if (player != null && bypassingPlayers.containsKey(player)) {
-                    bypassingPlayers.put(player, !(bypassingPlayers.get(player)));
-                    getLogger().log(Level.INFO, "Toggled " + player.getName() + "'s bypass to " + bypassingPlayers.get(player).toString());
-                    player.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Successfully set your bypass: " + bypassingPlayers.get(player).toString());
-                } else {
-                    sender.sendMessage("[AntiRelog] " + ChatColor.RED + "Something went wrong. Is this player online?");
-                }
-                return true;
-            }
-        } else if (command.getName().equalsIgnoreCase("arreload")) {
+    public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("arreload")) {
+            sender.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Config was successfully reloaded.");
             reloadConfig();
         }
         return false;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onCombat(final EntityDamageByEntityEvent event) {
+        if(event.isCancelled())
+            return;
+
         if (event.getDamager() instanceof Player && isSubject(event.getEntity().getType())) {
-            Player player = (Player) event.getDamager();
-            if (!bypassingPlayers.get(player))
+            final Player player = (Player) event.getDamager();
+            if (!player.hasPermission("antirelog.bypass"))
                 handledPlayers.get(player).startCombat();
-        }
+        } else if (event.getDamager() instanceof Projectile) {
+            if (((Projectile) event.getDamager()).getShooter() instanceof Player && isSubject(event.getEntity().getType())) {
+                final Player damager = (Player) (((Projectile) event.getDamager()).getShooter());
 
-        if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getEntity();
-            if (!bypassingPlayers.get(player))
-                handledPlayers.get(player).startCombat();
-        }
-
-        if (event.getDamager() instanceof Projectile) {
-            if (((Projectile) event.getDamager()).getShooter() instanceof Player &&
-                    isSubject(event.getEntity().getType())) {
-                Player damager = (Player) (((Projectile) event.getDamager()).getShooter());
-                if (!bypassingPlayers.get(damager))
+                if (damager != null && !damager.hasPermission("antirelog.bypass"))
                     handledPlayers.get(damager).startCombat();
             }
         }
-    }
 
-    protected static String getConfigString(String key) {
-        String value = config.getString(key);
-        return value != null
-                ? value
-                : "";
+        if (event.getEntity() instanceof Player) {
+            final Player player = (Player) event.getEntity();
+            if (!player.hasPermission("antirelog.bypass"))
+                handledPlayers.get(player).startCombat();
+        }
     }
 
     private boolean isSubject(EntityType entity) {
@@ -124,16 +94,16 @@ public final class AntiRelog extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onJoin(final PlayerJoinEvent event) {
-        handledPlayers.put(event.getPlayer(), new CombatHandle(event.getPlayer(), this));
-        bypassingPlayers.put(event.getPlayer(), event.getPlayer().hasPermission("antirelog.bypass"));
+        final Player player = event.getPlayer();
+        handledPlayers.put(player, new CombatHandle(player, this));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(final PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-        if (!bypassingPlayers.get(player) && handledPlayers.get(player).isInCombat()) {
+        final Player player = event.getPlayer();
+        if (!player.hasPermission("antirelog.bypass") && handledPlayers.get(player).isInCombat()) {
             player.setHealth(0);
-            String broadcastMessage = config.getString("broadcast-message");
+            final String broadcastMessage = config.getString("broadcast-message");
             if (broadcastMessage != null && !broadcastMessage.isEmpty()) {
                 event.setQuitMessage(ChatColor.translateAlternateColorCodes(
                         '&',
@@ -147,12 +117,11 @@ public final class AntiRelog extends JavaPlugin implements Listener {
             handledPlayers.get(player).cleanUp();
             handledPlayers.remove(player);
         }
-        bypassingPlayers.remove(player);
     }
+
     @EventHandler
     public void onDeath(final PlayerDeathEvent event){
-        Player player = event.getEntity().getPlayer();
-        CombatHandle combatHandle = handledPlayers.get(player);
+        final CombatHandle combatHandle = handledPlayers.get(event.getEntity().getPlayer());
         if(combatHandle.isInCombat()){
             combatHandle.reset();
         }

@@ -32,14 +32,14 @@ class CombatHandle {
 
         if (enableBar) {
             busyBar = Bukkit.createBossBar(formatCombatChatMessage("busy-message"),
-                    BarColor.valueOf(AntiRelog.getConfigString("busy-color").toUpperCase()),
-                    BarStyle.valueOf(AntiRelog.getConfigString("busy-style").toUpperCase()));
+                    BarColor.valueOf(AntiRelog.config.getString("busy-color").toUpperCase()),
+                    BarStyle.valueOf(AntiRelog.config.getString("busy-style").toUpperCase()));
             busyBar.addPlayer(player);
             busyBar.setVisible(false);
 
             freeBar = Bukkit.createBossBar(formatCombatChatMessage("free-message"),
-                    BarColor.valueOf(AntiRelog.getConfigString("free-color").toUpperCase()),
-                    BarStyle.valueOf(AntiRelog.getConfigString("free-style").toUpperCase()));
+                    BarColor.valueOf(AntiRelog.config.getString("free-color").toUpperCase()),
+                    BarStyle.valueOf(AntiRelog.config.getString("free-style").toUpperCase()));
             freeBar.addPlayer(player);
             freeBar.setVisible(false);
         }
@@ -48,7 +48,7 @@ class CombatHandle {
     }
 
     private String formatCombatChatMessage(String message) {
-        return ChatColor.translateAlternateColorCodes('&', AntiRelog.getConfigString(message))
+        return ChatColor.translateAlternateColorCodes('&', AntiRelog.config.getString(message))
                 .replaceAll("\\{displayname}", player.getDisplayName())
                 .replaceAll("\\{username}", player.getName())
                 .replaceAll("\\{timeleft}", String.valueOf(combatTimeLeft))
