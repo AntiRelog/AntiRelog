@@ -24,8 +24,8 @@ import java.util.logging.Level;
  */
 public final class AntiRelog extends JavaPlugin implements Listener {
     static FileConfiguration config;
-    private HashMap<Player, CombatHandle> handledPlayers = new HashMap<>();
-    private HashMap<Player, Boolean> bypassingPlayers = new HashMap<>();
+    private final HashMap<Player, CombatHandle> handledPlayers = new HashMap<>();
+    private final HashMap<Player, Boolean> bypassingPlayers = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -152,6 +152,7 @@ public final class AntiRelog extends JavaPlugin implements Listener {
         }
         bypassingPlayers.remove(player);
     }
+
     @EventHandler
     public void onDeath(final PlayerDeathEvent event){
         Player player = event.getEntity().getPlayer();
