@@ -18,8 +18,8 @@ class CombatHandle {
     private int combatTimeLeft;
     private final int combatTimeOut = AntiRelog.config.getInt("combat-len");
     private final int vanishTimeOut = AntiRelog.config.getInt("vanish-timeout");
-    private final String busyChat = formatCombatChatMessage("busy-chat");
-    private final String freeChat = formatCombatChatMessage("free-chat");
+    private final String busyChat;
+    private final String freeChat;
     private BossBar busyBar, freeBar;
     private final Player player;
     private final JavaPlugin plugin;
@@ -29,6 +29,8 @@ class CombatHandle {
     CombatHandle(Player player, JavaPlugin plugin) {
         this.player = player;
         this.plugin = plugin;
+        busyChat = formatCombatChatMessage("busy-chat");
+        freeChat = formatCombatChatMessage("free-chat");
 
         if (enableBar) {
             busyBar = Bukkit.createBossBar(formatCombatChatMessage("busy-message"),
