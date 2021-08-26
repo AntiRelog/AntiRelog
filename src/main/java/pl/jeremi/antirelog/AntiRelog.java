@@ -3,6 +3,7 @@ package pl.jeremi.antirelog;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -17,6 +18,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 
 /**
@@ -30,25 +34,42 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     public void onEnable() {
         config = getConfig();
 
-        config.addDefault("enable-bar", true);
-        config.addDefault("combat-len", 15);
-        config.addDefault("vanish-timeout", 5);
-        config.addDefault("busy-message", "&cDo not log out before&7: &r{timeleft} secs.");
-        config.addDefault("free-message", "&aYou can now log out");
-        config.addDefault("busy-color", "red");
-        config.addDefault("free-color", "green");
-        config.addDefault("busy-style", "segmented_6");
-        config.addDefault("free-style", "solid");
-        config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
-        config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeout} seconds.");
-        config.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");
-        config.addDefault("subjects", new String[]{"Player", "Zombie", "Husk", "Zombie_Villager"});
-        config.options().copyDefaults(true);
-        saveConfig();
+        final File configFile = new File(getDataFolder(), "config.yml");
+        if (configFile.getParentFile() != null)
+            configFile.getParentFile().mkdirs();
+
+        if(!configFile.exists()) {
+            try {
+                Files.copy(AntiRelog.class.getClassLoader().getResourceAsStream("config.yml"), configFile.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else{
+            config.addDefault("combat-length", 15);
+            config.addDefault("vanish-timeout", 5);
+
+            final ConfigurationSection barSection = config.createSection("bar");
+            barSection.addDefault("enable-bar", true);
+            barSection.addDefault("busy-color", "red");
+            barSection.addDefault("free-color", "green");
+            barSection.addDefault("busy-style", "segmented_6");
+            barSection.addDefault("free-style", "solid");
+            barSection.addDefault("busy-message", "&cDo not log out before&7: &r{timeleft} secs.");
+            barSection.addDefault("free-message", "&aYou can now log out");
+
+            final ConfigurationSection chatSection = config.createSection("chat");
+            chatSection.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
+            chatSection.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeout} seconds.");
+            chatSection.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");
+
+            config.addDefault("subjects", new String[]{"Player", "Zombie", "Husk", "Zombie_Villager"});
+            config.options().copyDefaults(true);
+            saveDefaultConfig();
+        }
 
         getServer().getPluginManager().registerEvents(this, this);
 
-        CombatHandle.enableBar = AntiRelog.config.getBoolean("enable-bar");
+        CombatHandle.enableBar = config.getConfigurationSection("bar").getBoolean("enable-bar");
     }
 
     @Override
@@ -87,7 +108,8 @@ public final class AntiRelog extends JavaPlugin implements Listener {
 
     private boolean isSubject(EntityType entity) {
         for (String s : config.getStringList("subjects")) {
-            if (s.toUpperCase().equals(entity.name())) return true;
+            if (s.toUpperCase().equals(entity.name()))
+                return true;
         }
         return false;
     }
