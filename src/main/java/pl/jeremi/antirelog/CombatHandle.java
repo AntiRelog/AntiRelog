@@ -23,7 +23,6 @@ class CombatHandle {
     private BossBar busyBar, freeBar;
     private final Player player;
     private final JavaPlugin plugin;
-    private boolean inCombat;
     private int combatTickTask = -1;
 
     CombatHandle(Player player, JavaPlugin plugin) {
@@ -45,8 +44,6 @@ class CombatHandle {
             freeBar.addPlayer(player);
             freeBar.setVisible(false);
         }
-
-        inCombat = false;
     }
 
     private String formatCombatChatMessage(String section, String message) {
@@ -58,8 +55,7 @@ class CombatHandle {
     }
 
     boolean isInCombat() {
-        return inCombat;
-        //return combatTimeLeft != 0;
+        return combatTimeLeft != 0;
     }
 
     void startCombat() {
@@ -69,7 +65,7 @@ class CombatHandle {
             busyBar.setProgress(1d);
             freeBar.setVisible(false);
         }
-        if (!busyChat.isEmpty() && !inCombat)
+        if (!busyChat.isEmpty() && !isInCombat())
             player.sendMessage(busyChat);
         combatTimeLeft = combatTimeOut;
         if (combatTickTask != -1)
@@ -91,8 +87,6 @@ class CombatHandle {
 
             combatTimeLeft--;
         }, 0, 20);
-        //combatTickTask.timedRun(true);
-        inCombat = true;
     }
 
     void endCombat() {
@@ -108,13 +102,10 @@ class CombatHandle {
         player.playNote(player.getLocation(), Instrument.PIANO, Note.natural(1, Note.Tone.G));
         if (!freeChat.isEmpty())
             player.sendMessage(freeChat);
-
-        inCombat = false;
     }
 
     // In case, if player re-joins
     void cleanUp() {
-        //combatTickTask.cancel();
         if (enableBar) {
             busyBar.removeAll();
             freeBar.removeAll();
