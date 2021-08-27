@@ -34,10 +34,10 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     public void onEnable() {
         config = getConfig();
 
+        // lines 37-45 was stolen from this https://github.com/NEZNAMY/TAB/blob/master/shared/src/main/java/me/neznamy/tab/shared/config/ConfigurationFile.java#L43
         final File configFile = new File(getDataFolder(), "config.yml");
         if (configFile.getParentFile() != null)
             configFile.getParentFile().mkdirs();
-
         if(!configFile.exists()) {
             try {
                 Files.copy(AntiRelog.class.getClassLoader().getResourceAsStream("config.yml"), configFile.toPath());
@@ -73,8 +73,8 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("arreload")) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
+        if (label.equalsIgnoreCase("arreload")) {
             sender.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Config was successfully reloaded.");
             reloadConfig();
         }
@@ -107,10 +107,9 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     }
 
     private boolean isSubject(EntityType entity) {
-        for (String s : config.getStringList("subjects")) {
+        for (String s : config.getStringList("subjects"))
             if (s.toUpperCase().equals(entity.name()))
                 return true;
-        }
         return false;
     }
 
@@ -126,14 +125,13 @@ public final class AntiRelog extends JavaPlugin implements Listener {
         if (!player.hasPermission("antirelog.bypass") && handledPlayers.get(player).isInCombat()) {
             player.setHealth(0);
             final String broadcastMessage = config.getString("broadcast-message");
-            if (broadcastMessage != null && !broadcastMessage.isEmpty()) {
+            if (broadcastMessage != null && !broadcastMessage.isEmpty())
                 event.setQuitMessage(ChatColor.translateAlternateColorCodes(
                         '&',
                         broadcastMessage
                                 .replaceAll("\\{displayname}", player.getDisplayName())
                                 .replaceAll("\\{username}", player.getName())
                 ));
-            }
         }
         if (handledPlayers.containsKey(player)) {
             handledPlayers.get(player).cleanUp();
@@ -144,8 +142,7 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     @EventHandler
     public void onDeath(final PlayerDeathEvent event){
         final CombatHandle combatHandle = handledPlayers.get(event.getEntity().getPlayer());
-        if(combatHandle.isInCombat()){
+        if(combatHandle.isInCombat())
             combatHandle.reset();
-        }
     }
 }
