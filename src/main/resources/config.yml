@@ -26,6 +26,6 @@ chat:
 
 # List of all entities https://papermc.io/javadocs/paper/1.17/org/bukkit/entity/EntityType.html
 # Below is the list of entities who can start combat.
-# 'all' replace all entities.
+# 'ALL' replace all entities.
 subjects:
-  - all
+  - ALL

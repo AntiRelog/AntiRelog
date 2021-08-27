@@ -109,13 +109,7 @@ public final class AntiRelog extends JavaPlugin implements Listener {
 
     private boolean isSubject(EntityType entity) {
         final List<String> subjects = config.getStringList("subjects");
-        if(subjects.contains("all"))
-            return true;
-
-        for (String s : subjects)
-            if (s.toUpperCase().equals(entity.name()))
-                return true;
-        return false;
+        return (subjects.contains("ALL") || subjects.contains(entity.name()));
     }
 
     @EventHandler
