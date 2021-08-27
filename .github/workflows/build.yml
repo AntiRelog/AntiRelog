@@ -9,15 +9,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout Git Repository
+      uses: actions/checkout@v2
     - name: Set up JDK
       uses: actions/setup-java@v2
       with:
         java-version: '8'
         distribution: 'adopt'
-
     - name: Build
       run: gradle build
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: AntiRelog
+        path: antirelog.jar
 
     # The USERNAME and TOKEN need to correspond to the credentials environment variables used in
     # the publishing section of your build.gradle
