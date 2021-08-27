@@ -3,6 +3,7 @@ package pl.jeremi.antirelog;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -17,7 +18,11 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Jeremiasz N. on 2016-04-26.
@@ -30,30 +35,47 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     public void onEnable() {
         config = getConfig();
 
-        config.addDefault("enable-bar", true);
-        config.addDefault("combat-len", 15);
-        config.addDefault("vanish-timeout", 5);
-        config.addDefault("busy-message", "&cDo not log out before&7: &r{timeleft} secs.");
-        config.addDefault("free-message", "&aYou can now log out");
-        config.addDefault("busy-color", "red");
-        config.addDefault("free-color", "green");
-        config.addDefault("busy-style", "segmented_6");
-        config.addDefault("free-style", "solid");
-        config.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
-        config.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeout} seconds.");
-        config.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");
-        config.addDefault("subjects", new String[]{"Player", "Zombie", "Husk", "Zombie_Villager"});
-        config.options().copyDefaults(true);
-        saveConfig();
+        // lines 37-45 was stolen from this https://github.com/NEZNAMY/TAB/blob/master/shared/src/main/java/me/neznamy/tab/shared/config/ConfigurationFile.java#L43
+        final File configFile = new File(getDataFolder(), "config.yml");
+        if (configFile.getParentFile() != null)
+            configFile.getParentFile().mkdirs();
+        if(!configFile.exists()) {
+            try {
+                Files.copy(AntiRelog.class.getClassLoader().getResourceAsStream("config.yml"), configFile.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else{
+            config.addDefault("combat-length", 15);
+            config.addDefault("vanish-timeout", 5);
+
+            final ConfigurationSection barSection = config.createSection("bossbar");
+            barSection.addDefault("enable-bar", true);
+            barSection.addDefault("busy-color", "red");
+            barSection.addDefault("free-color", "green");
+            barSection.addDefault("busy-style", "segmented_6");
+            barSection.addDefault("free-style", "solid");
+            barSection.addDefault("busy-message", "&cDo not log out before&7: &r{timeleft} secs.");
+            barSection.addDefault("free-message", "&aYou can now log out");
+
+            final ConfigurationSection chatSection = config.createSection("chat");
+            chatSection.addDefault("broadcast-message", "&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!");
+            chatSection.addDefault("busy-chat", "&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeout} seconds.");
+            chatSection.addDefault("free-chat", "&a[AntiRelog] &6Combat&f timed out!");
+
+            config.addDefault("subjects", new String[]{"Player", "Zombie", "Husk", "Zombie_Villager"});
+            config.options().copyDefaults(true);
+            saveDefaultConfig();
+        }
 
         getServer().getPluginManager().registerEvents(this, this);
 
-        CombatHandle.enableBar = AntiRelog.config.getBoolean("enable-bar");
+        CombatHandle.enableBar = config.getConfigurationSection("bar").getBoolean("enable-bar");
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("arreload")) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
+        if (label.equalsIgnoreCase("arreload")) {
             sender.sendMessage("[AntiRelog] " + ChatColor.GREEN + "Config was successfully reloaded.");
             reloadConfig();
         }
@@ -86,10 +108,8 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     }
 
     private boolean isSubject(EntityType entity) {
-        for (String s : config.getStringList("subjects")) {
-            if (s.toUpperCase().equals(entity.name())) return true;
-        }
-        return false;
+        final List<String> subjects = config.getStringList("subjects");
+        return (subjects.contains("ALL") || subjects.contains(entity.name()));
     }
 
     @EventHandler
@@ -104,14 +124,13 @@ public final class AntiRelog extends JavaPlugin implements Listener {
         if (!player.hasPermission("antirelog.bypass") && handledPlayers.get(player).isInCombat()) {
             player.setHealth(0);
             final String broadcastMessage = config.getString("broadcast-message");
-            if (broadcastMessage != null && !broadcastMessage.isEmpty()) {
+            if (broadcastMessage != null && !broadcastMessage.isEmpty())
                 event.setQuitMessage(ChatColor.translateAlternateColorCodes(
                         '&',
                         broadcastMessage
                                 .replaceAll("\\{displayname}", player.getDisplayName())
                                 .replaceAll("\\{username}", player.getName())
                 ));
-            }
         }
         if (handledPlayers.containsKey(player)) {
             handledPlayers.get(player).cleanUp();
@@ -122,8 +141,7 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     @EventHandler
     public void onDeath(final PlayerDeathEvent event){
         final CombatHandle combatHandle = handledPlayers.get(event.getEntity().getPlayer());
-        if(combatHandle.isInCombat()){
+        if(combatHandle.isInCombat())
             combatHandle.reset();
-        }
     }
 }
