@@ -48,7 +48,7 @@ public final class AntiRelog extends JavaPlugin implements Listener {
             config.addDefault("combat-length", 15);
             config.addDefault("vanish-timeout", 5);
 
-            final ConfigurationSection barSection = config.createSection("bar");
+            final ConfigurationSection barSection = config.createSection("bossbar");
             barSection.addDefault("enable-bar", true);
             barSection.addDefault("busy-color", "red");
             barSection.addDefault("free-color", "green");

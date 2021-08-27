@@ -32,15 +32,15 @@ class CombatHandle {
         freeChat = formatCombatChatMessage("chat", "free-chat");
 
         if (enableBar) {
-            busyBar = Bukkit.createBossBar(formatCombatChatMessage("bar", "busy-message"),
-                    BarColor.valueOf(AntiRelog.config.getConfigurationSection("bar").getString("busy-color").toUpperCase()),
-                    BarStyle.valueOf(AntiRelog.config.getConfigurationSection("bar").getString("busy-style").toUpperCase()));
+            busyBar = Bukkit.createBossBar(formatCombatChatMessage("bossbar", "busy-message"),
+                    BarColor.valueOf(AntiRelog.config.getConfigurationSection("bossbar").getString("busy-color").toUpperCase()),
+                    BarStyle.valueOf(AntiRelog.config.getConfigurationSection("bossbar").getString("busy-style").toUpperCase()));
             busyBar.addPlayer(player);
             busyBar.setVisible(false);
 
-            freeBar = Bukkit.createBossBar(formatCombatChatMessage("bar", "free-message"),
-                    BarColor.valueOf(AntiRelog.config.getConfigurationSection("bar").getString("free-color").toUpperCase()),
-                    BarStyle.valueOf(AntiRelog.config.getConfigurationSection("bar").getString("free-style").toUpperCase()));
+            freeBar = Bukkit.createBossBar(formatCombatChatMessage("bossbar", "free-message"),
+                    BarColor.valueOf(AntiRelog.config.getConfigurationSection("bossbar").getString("free-color").toUpperCase()),
+                    BarStyle.valueOf(AntiRelog.config.getConfigurationSection("bossbar").getString("free-style").toUpperCase()));
             freeBar.addPlayer(player);
             freeBar.setVisible(false);
         }
@@ -60,7 +60,7 @@ class CombatHandle {
 
     void startCombat() {
         if (enableBar) {
-            busyBar.setTitle(formatCombatChatMessage("bar", "busy-message"));
+            busyBar.setTitle(formatCombatChatMessage("bossbar", "busy-message"));
             busyBar.setVisible(true);
             busyBar.setProgress(1d);
             freeBar.setVisible(false);
@@ -74,7 +74,6 @@ class CombatHandle {
         combatTickTask = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             if (combatTimeLeft == 0) {
                 CombatHandle.this.endCombat();
-
                 return;
             }
 
@@ -82,7 +81,7 @@ class CombatHandle {
             if (enableBar) {
                 busyBar.setProgress((double) combatTimeLeft / combatTimeOut);
                 // Update time in message
-                busyBar.setTitle(CombatHandle.this.formatCombatChatMessage("bar", "busy-message"));
+                busyBar.setTitle(CombatHandle.this.formatCombatChatMessage("bossbar", "busy-message"));
             }
 
             combatTimeLeft--;
@@ -94,8 +93,7 @@ class CombatHandle {
             busyBar.setVisible(false);
 
             freeBar.setVisible(true);
-            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin,
-                    () -> freeBar.setVisible(false), vanishTimeOut * 20L);
+            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> freeBar.setVisible(false), vanishTimeOut * 20L);
         }
         plugin.getServer().getScheduler().cancelTask(combatTickTask);
         combatTickTask = -1;

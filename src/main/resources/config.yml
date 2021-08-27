@@ -1,28 +1,31 @@
-combat-length: 15
-vanish-timeout: 5
+combat-length: 15 # (in seconds)
+# Time of how long freeBar is visible.
+vanish-timeout: 5 # (in seconds)
 
-bar:
+bossbar:
   enable-bar: true
-  # Here you can use only this colors: blue, green, pink, purple, red, white, yellow
+  # Here you can use only these colors: blue, green, pink, purple, red, white and yellow.
   busy-color: red
   free-color: green
 
-  # Here you can use only this styles: solid, segmented_6, segmented_10, segmented_12, segmented_20
+  # Here you can use only these styles: solid, segmented_6, segmented_10, segmented_12 and segmented_20.
   busy-style: segmented_6
   free-style: solid
 
-  # Here you can use only this placeholders: {displayname}, {username}, {timeleft}, {timeout}
-  # '&' is replace '§' if you use minecraft formatting https://minecraft.fandom.com/wiki/Formatting_codes
+  # Here you can use only these placeholders: {displayname}, {username}, {timeleft} and {timeout}.
+  # '&' is replacing '§' if you use minecraft formatting https://minecraft.fandom.com/wiki/Formatting_codes
   busy-message: '&cDo not log out before&7: &r{timeleft} secs.'
   free-message: '&aYou can now log out'
 
 chat:
-  # '&' is replace '§' if you use minecraft formatting https://minecraft.fandom.com/wiki/Formatting_codes
+  # '&' is replacing '§' if you use minecraft formatting https://minecraft.fandom.com/wiki/Formatting_codes
   broadcast-message: '&b[AntiRelog] &6Player &2{displayname} &6has left while in combat!'
-  # When you set(leave?) one from this messages below empty, it don't send
+  # When you set one from this messages below empty, plugin won't send.
   busy-chat: '&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeout} seconds.'
   free-chat: '&a[AntiRelog] &6Combat&f timed out!'
 
+# List of entities who can start combat.
+# https://papermc.io/javadocs/paper/1.17/org/bukkit/entity/package-summary.html
 subjects:
   - Player
   - Zombie
