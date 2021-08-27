@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Jeremiasz N. on 2016-04-26.
@@ -107,7 +108,11 @@ public final class AntiRelog extends JavaPlugin implements Listener {
     }
 
     private boolean isSubject(EntityType entity) {
-        for (String s : config.getStringList("subjects"))
+        final List<String> subjects = config.getStringList("subjects");
+        if(subjects.contains("all"))
+            return true;
+
+        for (String s : subjects)
             if (s.toUpperCase().equals(entity.name()))
                 return true;
         return false;

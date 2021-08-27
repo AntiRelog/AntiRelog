@@ -24,10 +24,8 @@ chat:
   busy-chat: '&c[AntiRelog] &fYou are now in &6combat&f! It time out in {timeout} seconds.'
   free-chat: '&a[AntiRelog] &6Combat&f timed out!'
 
-# List of entities who can start combat.
-# https://papermc.io/javadocs/paper/1.17/org/bukkit/entity/package-summary.html
+# List of all entities https://papermc.io/javadocs/paper/1.17/org/bukkit/entity/EntityType.html
+# Below is the list of entities who can start combat.
+# 'all' replace all entities.
 subjects:
-  - Player
-  - Zombie
-  - Husk
-  - Zombie_Villager
+  - all
